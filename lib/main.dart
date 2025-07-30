@@ -107,6 +107,21 @@ class TourPointScreen extends StatelessWidget {
                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                 userAgentPackageName: 'dev.meuapp.guia_turistico',
               ),
+              // Camada de marcadores (pins) do mapa.
+              MarkerLayer(
+                markers: [
+                  Marker(
+                    point: const LatLng(2.8235, -60.6758),
+                    width: 40.0,
+                    height: 40.0,
+                    child: const Icon(
+                      Icons.location_pin,
+                      color: Colors.red,
+                      size: 40.0,
+                    ),
+                  ),
+                ],
+              ),
             ],
           ),
         ),
