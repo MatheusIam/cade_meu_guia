@@ -1,87 +1,541 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
-import 'package:provider/provider.dart';
-import '../providers/theme_provider.dart';
 import '../models/tour_point.dart';
 import '../widgets/widgets.dart';
+import '../data/tour_points_data.dart';
 
-/// Widget que representa a tela principal do ponto turístico.
-class TourPointScreen extends StatelessWidget {
-  final TourPoint? tourPoint;
+/// Tela de detalhes do ponto turístico
+class TourPointScreen extends StatefulWidget {
+  final TourPoint tourPoint;
 
-  const TourPointScreen({super.key, this.tourPoint});
-
-  // Dados padrão da Orla Taumanã
-  static const TourPoint _defaultTourPoint = TourPoint(
-    id: '1',
-    name: 'Orla Taumanã',
-    title: 'Cartão-postal de Boa Vista',
-    description: 'A Orla Taumanã é um dos principais pontos turísticos de Boa Vista, capital de Roraima. Localizada às margens do Rio Branco, oferece uma vista espetacular e é ideal para caminhadas, contemplação do pôr do sol e atividades de lazer.',
-    location: LatLng(2.8235, -60.6758),
-    rating: 4.7,
-    photoCount: 850,
-    activityType: 'Caminhada',
-  );
+  const TourPointScreen({super.key, required this.tourPoint});
 
   @override
-  Widget build(BuildContext context) {
-    final themeProvider = Provider.of<ThemeProvider>(context);
-    final currentTourPoint = tourPoint ?? _defaultTourPoint;
+  State<TourPointScreen> createState() => _TourPointScreenState();
+}
+
+class _TourPointScreenState extends State<TourPointScreen>
+    with TickerProviderStateMixin {
+  late TabController _tabController;
+  bool _isFavorite = false;
+  int _currentImageIndex = 0;
+  late PageController _pageController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 3, vsync: this);
+    _pageController = PageController();
+    _loadFavoriteStatus();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _pageController.dispose();
+    super.dispose();
+  }
+
+  void _loadFavoriteStatus() {
+    // Simular carregamento do status de favorito
+    // Em uma aplicação real, isso viria de um banco de dados ou SharedPreferences
+    setState(() {
+      _isFavorite = false; // Por padrão, não é favorito
+    });
+  }
+
+  void _toggleFavorite() {
+    HapticFeedback.lightImpact();
+    setState(() {
+      _isFavorite = !_isFavorite;
+    });
     
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(currentTourPoint.name),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-        actions: [
-          IconButton(
-            icon: Icon(
-              themeProvider.themeMode == ThemeMode.dark
-                  ? Icons.light_mode
-                  : Icons.dark_mode,
-            ),
-            onPressed: () => themeProvider.toggleTheme(),
-            tooltip: 'Toggle Theme',
-          ),
-          IconButton(
-            icon: const Icon(Icons.auto_mode),
-            onPressed: () => themeProvider.setSystemTheme(),
-            tooltip: 'Set System Theme',
-          ),
-        ],
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(
+          _isFavorite 
+            ? 'Adicionado aos favoritos' 
+            : 'Removido dos favoritos'
+        ),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'Desfazer',
+          onPressed: _toggleFavorite,
+        ),
       ),
-      body: SingleChildScrollView(
-        // Permite a rolagem da tela em dispositivos menores.
-        child: Padding(
-          padding: const EdgeInsets.all(16.0),
+    );
+  }
+
+  void _shareLocation() {
+    HapticFeedback.selectionClick();
+    // Implementar funcionalidade de compartilhamento
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Localização compartilhada!'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _openDirections() {
+    HapticFeedback.selectionClick();
+    // Implementar abertura de direções no app de mapas
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Abrindo direções...'),
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  void _showImageGallery() {
+    if (widget.tourPoint.images.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nenhuma imagem disponível'),
+          duration: Duration(seconds: 2),
+        ),
+      );
+      return;
+    }
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          height: 400,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(12),
+            color: Theme.of(context).colorScheme.surface,
+          ),
           child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Seção de título e descrição do local.
-              LocationHeader(
-                title: currentTourPoint.title,
-                description: currentTourPoint.description,
+              Expanded(
+                child: PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentImageIndex = index;
+                    });
+                  },
+                  itemCount: widget.tourPoint.images.length,
+                  itemBuilder: (context, index) {
+                    return ClipRRect(
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(12),
+                      ),
+                      child: Container(
+                        color: Colors.grey[300],
+                        child: const Center(
+                          child: Icon(
+                            Icons.image,
+                            size: 60,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ),
+                    );
+                  },
+                ),
               ),
-              const SizedBox(height: 24),
-
-              // Seção do mapa.
-              MapWidget(
-                location: currentTourPoint.location,
-                zoom: 15.0,
-                width: 300,
-                height: 300,
-              ),
-              const SizedBox(height: 24),
-
-              // Seção de informações adicionais e ações.
-              ExtraInfoSection(
-                rating: currentTourPoint.rating.toString(),
-                photoCount: currentTourPoint.photoCount.toString(),
-                activityType: currentTourPoint.activityType,
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      '${_currentImageIndex + 1} de ${widget.tourPoint.images.length}',
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    TextButton(
+                      onPressed: () => Navigator.pop(context),
+                      child: const Text('Fechar'),
+                    ),
+                  ],
+                ),
               ),
             ],
           ),
         ),
       ),
+    );
+  }
+
+  List<TourPoint> _getNearbyPoints() {
+    return TourPointsData.getNearbyTourPoints(widget.tourPoint.location, 5.0)
+        .where((point) => point.id != widget.tourPoint.id)
+        .take(3)
+        .toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    
+    return Scaffold(
+      body: NestedScrollView(
+        headerSliverBuilder: (context, innerBoxIsScrolled) {
+          return [
+            SliverAppBar(
+              expandedHeight: 300,
+              pinned: true,
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              flexibleSpace: FlexibleSpaceBar(
+                title: Text(
+                  widget.tourPoint.name,
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                background: GestureDetector(
+                  onTap: _showImageGallery,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Theme.of(context).colorScheme.primary.withOpacity(0.7),
+                          Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                        ],
+                      ),
+                    ),
+                    child: widget.tourPoint.images.isNotEmpty
+                        ? const Center(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(
+                                  Icons.image,
+                                  size: 60,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(height: 8),
+                                Text(
+                                  'Toque para ver galeria',
+                                  style: TextStyle(
+                                    color: Colors.white,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          )
+                        : const Center(
+                            child: Icon(
+                              Icons.location_on,
+                              size: 80,
+                              color: Colors.white,
+                            ),
+                          ),
+                  ),
+                ),
+              ),
+              actions: [
+                IconButton(
+                  icon: Icon(
+                    _isFavorite ? Icons.favorite : Icons.favorite_border,
+                    color: _isFavorite ? Colors.red : null,
+                  ),
+                  onPressed: _toggleFavorite,
+                  tooltip: 'Favoritar',
+                ),
+                IconButton(
+                  icon: const Icon(Icons.share),
+                  onPressed: _shareLocation,
+                  tooltip: 'Compartilhar',
+                ),
+                PopupMenuButton<String>(
+                  onSelected: (value) {
+                    switch (value) {
+                      case 'directions':
+                        _openDirections();
+                        break;
+                      case 'gallery':
+                        _showImageGallery();
+                        break;
+                    }
+                  },
+                  itemBuilder: (context) => [
+                    const PopupMenuItem(
+                      value: 'directions',
+                      child: Row(
+                        children: [
+                          Icon(Icons.directions),
+                          SizedBox(width: 8),
+                          Text('Direções'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'gallery',
+                      child: Row(
+                        children: [
+                          Icon(Icons.photo_library),
+                          SizedBox(width: 8),
+                          Text('Galeria'),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ];
+        },
+        body: Column(
+          children: [
+            TabBar(
+              controller: _tabController,
+              tabs: const [
+                Tab(icon: Icon(Icons.info), text: 'Detalhes'),
+                Tab(icon: Icon(Icons.map), text: 'Mapa'),
+                Tab(icon: Icon(Icons.explore), text: 'Próximos'),
+              ],
+            ),
+            Expanded(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  _buildDetailsTab(),
+                  _buildMapTab(),
+                  _buildNearbyTab(),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _openDirections,
+        icon: const Icon(Icons.directions),
+        label: const Text('Direções'),
+      ),
+    );
+  }
+
+  Widget _buildDetailsTab() {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          LocationHeader(
+            title: widget.tourPoint.title,
+            description: widget.tourPoint.description,
+          ),
+          const SizedBox(height: 24),
+          ExtraInfoSection(
+            rating: widget.tourPoint.rating.toString(),
+            photoCount: widget.tourPoint.photoCount.toString(),
+            activityType: widget.tourPoint.activityType,
+          ),
+          const SizedBox(height: 24),
+          _buildActionButtons(),
+          const SizedBox(height: 24),
+          _buildAdditionalInfo(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapTab() {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: MapWidget(
+        location: widget.tourPoint.location,
+        zoom: 16.0,
+        width: double.infinity,
+        height: double.infinity,
+      ),
+    );
+  }
+
+  Widget _buildNearbyTab() {
+    final nearbyPoints = _getNearbyPoints();
+    
+    return nearbyPoints.isEmpty
+        ? const Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.location_off, size: 64, color: Colors.grey),
+                SizedBox(height: 16),
+                Text(
+                  'Nenhum ponto próximo encontrado',
+                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                ),
+              ],
+            ),
+          )
+        : ListView.builder(
+            padding: const EdgeInsets.all(16),
+            itemCount: nearbyPoints.length,
+            itemBuilder: (context, index) {
+              final point = nearbyPoints[index];
+              final distance = const Distance().as(
+                LengthUnit.Kilometer,
+                widget.tourPoint.location,
+                point.location,
+              );
+              
+              return Card(
+                margin: const EdgeInsets.only(bottom: 12),
+                child: ListTile(
+                  leading: CircleAvatar(
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    child: Text(
+                      point.rating.toString(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  title: Text(point.name),
+                  subtitle: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(point.title),
+                      const SizedBox(height: 4),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 16,
+                            color: Theme.of(context).colorScheme.primary,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${distance.toStringAsFixed(1)} km',
+                            style: TextStyle(
+                              color: Theme.of(context).colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  trailing: const Icon(Icons.arrow_forward_ios),
+                  onTap: () {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => TourPointScreen(tourPoint: point),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
+  }
+
+  Widget _buildActionButtons() {
+    return Row(
+      children: [
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _openDirections,
+            icon: const Icon(Icons.directions),
+            label: const Text('Direções'),
+          ),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: ElevatedButton.icon(
+            onPressed: _shareLocation,
+            icon: const Icon(Icons.share),
+            label: const Text('Compartilhar'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              foregroundColor: Theme.of(context).colorScheme.onSecondary,
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildAdditionalInfo() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Informações Adicionais',
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Card(
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildInfoRow(
+                  Icons.star,
+                  'Avaliação',
+                  '${widget.tourPoint.rating}/5.0',
+                ),
+                const Divider(),
+                _buildInfoRow(
+                  Icons.photo_library,
+                  'Fotos disponíveis',
+                  widget.tourPoint.photoCount.toString(),
+                ),
+                const Divider(),
+                _buildInfoRow(
+                  Icons.category,
+                  'Tipo de atividade',
+                  widget.tourPoint.activityType,
+                ),
+                const Divider(),
+                _buildInfoRow(
+                  Icons.location_on,
+                  'Coordenadas',
+                  '${widget.tourPoint.location.latitude.toStringAsFixed(4)}, ${widget.tourPoint.location.longitude.toStringAsFixed(4)}',
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildInfoRow(IconData icon, String label, String value) {
+    return Row(
+      children: [
+        Icon(
+          icon,
+          color: Theme.of(context).colorScheme.primary,
+          size: 20,
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                  color: Theme.of(context).colorScheme.onSurfaceVariant,
+                ),
+              ),
+              Text(
+                value,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

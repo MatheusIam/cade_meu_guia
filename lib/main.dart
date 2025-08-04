@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/favorites_provider.dart';
 import 'themes/app_themes.dart';
-import 'screens/tour_point_screen.dart';
+import 'screens/home_screen.dart';
 
 void main() {
   runApp(
-    ChangeNotifierProvider(
-      create: (context) => ThemeProvider(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => FavoritesProvider()),
+      ],
       child: const MainApp(),
     ),
   );
@@ -25,7 +29,7 @@ class MainApp extends StatelessWidget {
           theme: AppThemes.lightTheme,
           darkTheme: AppThemes.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const TourPointScreen(),
+          home: const HomeScreen(),
           debugShowCheckedModeBanner: false,
         );
       },

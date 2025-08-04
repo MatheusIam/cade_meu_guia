@@ -15,4 +15,19 @@ class ThemeProvider with ChangeNotifier {
     _themeMode = ThemeMode.system;
     notifyListeners();
   }
+
+  void setThemeMode(ThemeMode mode) {
+    _themeMode = mode;
+    notifyListeners();
+  }
+
+  void setLightTheme() {
+    _themeMode = ThemeMode.light;
+    notifyListeners();
+  }
+
+  void setDarkTheme() {
+    _themeMode = ThemeMode.dark;
+    notifyListeners();
+  }
 }
