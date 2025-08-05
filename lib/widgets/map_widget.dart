@@ -42,12 +42,53 @@ class MapWidget extends StatelessWidget {
                 markers: [
                   Marker(
                     point: location,
-                    width: 40.0,
-                    height: 40.0,
-                    child: Icon(
-                      Icons.location_pin,
-                      color: Theme.of(context).colorScheme.error, // Using error color for emphasis
-                      size: 40.0,
+                    width: 50.0,
+                    height: 50.0,
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        // Sombra do pin
+                        Container(
+                          width: 46,
+                          height: 46,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 8,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
+                          ),
+                        ),
+                        // Pin principal
+                        Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Theme.of(context).colorScheme.primary,
+                                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                              ],
+                            ),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: Colors.white,
+                              width: 3,
+                            ),
+                          ),
+                          child: Icon(
+                            Icons.place,
+                            color: Colors.white,
+                            size: 24,
+                          ),
+                        ),
+                        // Pulso animado (opcional - não vou adicionar aqui para manter simples)
+                      ],
                     ),
                   ),
                 ],

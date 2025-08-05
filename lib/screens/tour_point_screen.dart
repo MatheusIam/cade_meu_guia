@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
+import '../providers/favorites_provider.dart';
+import '../providers/ratings_provider.dart';
 import '../widgets/widgets.dart';
+import '../widgets/rating_form_dialog.dart';
 import '../data/tour_points_data.dart';
 
 /// Tela de detalhes do ponto turístico
@@ -18,7 +22,6 @@ class TourPointScreen extends StatefulWidget {
 class _TourPointScreenState extends State<TourPointScreen>
     with TickerProviderStateMixin {
   late TabController _tabController;
-  bool _isFavorite = false;
   int _currentImageIndex = 0;
   late PageController _pageController;
 
@@ -27,7 +30,6 @@ class _TourPointScreenState extends State<TourPointScreen>
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _pageController = PageController();
-    _loadFavoriteStatus();
   }
 
   @override
@@ -37,34 +39,27 @@ class _TourPointScreenState extends State<TourPointScreen>
     super.dispose();
   }
 
-  void _loadFavoriteStatus() {
-    // Simular carregamento do status de favorito
-    // Em uma aplicação real, isso viria de um banco de dados ou SharedPreferences
-    setState(() {
-      _isFavorite = false; // Por padrão, não é favorito
-    });
-  }
-
-  void _toggleFavorite() {
+  void _toggleFavorite() async {
     HapticFeedback.lightImpact();
-    setState(() {
-      _isFavorite = !_isFavorite;
-    });
+    final favoritesProvider = context.read<FavoritesProvider>();
+    await favoritesProvider.toggleFavorite(widget.tourPoint);
     
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(
-          _isFavorite 
-            ? 'Adicionado aos favoritos' 
-            : 'Removido dos favoritos'
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            favoritesProvider.isFavorite(widget.tourPoint.id)
+                ? 'Adicionado aos favoritos' 
+                : 'Removido dos favoritos'
+          ),
+          duration: const Duration(seconds: 2),
+          action: SnackBarAction(
+            label: 'Desfazer',
+            onPressed: () => _toggleFavorite(),
+          ),
         ),
-        duration: const Duration(seconds: 2),
-        action: SnackBarAction(
-          label: 'Desfazer',
-          onPressed: _toggleFavorite,
-        ),
-      ),
-    );
+      );
+    }
   }
 
   void _shareLocation() {
@@ -234,13 +229,18 @@ class _TourPointScreenState extends State<TourPointScreen>
                 ),
               ),
               actions: [
-                IconButton(
-                  icon: Icon(
-                    _isFavorite ? Icons.favorite : Icons.favorite_border,
-                    color: _isFavorite ? Colors.red : null,
-                  ),
-                  onPressed: _toggleFavorite,
-                  tooltip: 'Favoritar',
+                Consumer<FavoritesProvider>(
+                  builder: (context, favoritesProvider, child) {
+                    final isFavorite = favoritesProvider.isFavorite(widget.tourPoint.id);
+                    return IconButton(
+                      icon: Icon(
+                        isFavorite ? Icons.favorite : Icons.favorite_border,
+                        color: isFavorite ? Colors.red : null,
+                      ),
+                      onPressed: _toggleFavorite,
+                      tooltip: 'Favoritar',
+                    );
+                  },
                 ),
                 IconButton(
                   icon: const Icon(Icons.share),
@@ -255,6 +255,9 @@ class _TourPointScreenState extends State<TourPointScreen>
                         break;
                       case 'gallery':
                         _showImageGallery();
+                        break;
+                      case 'rating':
+                        _showRatingDialog();
                         break;
                     }
                   },
@@ -276,6 +279,16 @@ class _TourPointScreenState extends State<TourPointScreen>
                           Icon(Icons.photo_library),
                           SizedBox(width: 8),
                           Text('Galeria'),
+                        ],
+                      ),
+                    ),
+                    const PopupMenuItem(
+                      value: 'rating',
+                      child: Row(
+                        children: [
+                          Icon(Icons.star_rate),
+                          SizedBox(width: 8),
+                          Text('Avaliar'),
                         ],
                       ),
                     ),
@@ -732,6 +745,25 @@ class _TourPointScreenState extends State<TourPointScreen>
             }
           },
         ),
+      ),
+    );
+  }
+
+  void _showRatingDialog() {
+    final ratingsProvider = context.read<RatingsProvider>();
+    final existingRating = ratingsProvider.getUserRatingForTourPoint(
+      widget.tourPoint.id, 
+      'current_user'
+    );
+
+    showDialog(
+      context: context,
+      builder: (context) => RatingFormDialog(
+        tourPoint: widget.tourPoint,
+        existingRating: existingRating,
+        onRatingSubmitted: (rating) async {
+          await ratingsProvider.addRating(rating);
+        },
       ),
     );
   }
