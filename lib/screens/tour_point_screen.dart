@@ -289,11 +289,12 @@ class _TourPointScreenState extends State<TourPointScreen>
           children: [
             TabBar(
               controller: _tabController,
-              isScrollable: true,
+              isScrollable: false,
+              labelPadding: const EdgeInsets.symmetric(horizontal: 8),
               tabs: const [
                 Tab(icon: Icon(Icons.info), text: 'Detalhes'),
                 Tab(icon: Icon(Icons.map), text: 'Mapa'),
-                Tab(icon: Icon(Icons.eco), text: 'Preservação'),
+                Tab(icon: Icon(Icons.eco), text: 'Preservar'),
                 Tab(icon: Icon(Icons.explore), text: 'Próximos'),
               ],
             ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/preservation_tip.dart';
 import '../data/preservation_data.dart';
+import '../screens/all_preservation_tips_screen.dart';
 
 class PreservationWidget extends StatefulWidget {
   final String? activityType;
@@ -280,32 +281,10 @@ class _PreservationWidgetState extends State<PreservationWidget> {
   }
 
   void _showAllTipsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        child: Container(
-          constraints: BoxConstraints(
-            maxHeight: MediaQuery.of(context).size.height * 0.8,
-            maxWidth: MediaQuery.of(context).size.width * 0.9,
-          ),
-          child: Column(
-            children: [
-              AppBar(
-                title: const Text('Todas as Dicas de Preservação'),
-                automaticallyImplyLeading: false,
-                actions: [
-                  IconButton(
-                    onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close),
-                  ),
-                ],
-              ),
-              const Expanded(
-                child: PreservationWidget(showAllTips: true),
-              ),
-            ],
-          ),
-        ),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AllPreservationTipsScreen(),
       ),
     );
   }

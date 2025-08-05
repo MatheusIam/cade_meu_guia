@@ -506,11 +506,19 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ),
                                 ),
-                                title: Text(point.name),
+                                title: Text(
+                                  point.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                                 subtitle: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(point.title),
+                                    Text(
+                                      point.title,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
@@ -520,14 +528,17 @@ class _HomeScreenState extends State<HomeScreen> {
                                           color: Theme.of(context).colorScheme.primary,
                                         ),
                                         const SizedBox(width: 4),
-                                        Text(
-                                          point.activityType,
-                                          style: TextStyle(
-                                            color: Theme.of(context).colorScheme.primary,
-                                            fontWeight: FontWeight.w500,
+                                        Expanded(
+                                          child: Text(
+                                            point.activityType,
+                                            style: TextStyle(
+                                              color: Theme.of(context).colorScheme.primary,
+                                              fontWeight: FontWeight.w500,
+                                            ),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
                                           ),
                                         ),
-                                        const SizedBox(width: 16),
                                         const Icon(
                                           Icons.photo_library,
                                           size: 16,
@@ -545,26 +556,31 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                trailing: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    IconButton(
-                                      icon: const Icon(Icons.center_focus_strong),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        _centerMapOnLocation(point.location);
-                                      },
-                                      tooltip: 'Centralizar no mapa',
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(Icons.info_outline),
-                                      onPressed: () {
-                                        Navigator.pop(context);
-                                        _onMarkerTapped(point);
-                                      },
-                                      tooltip: 'Ver detalhes',
-                                    ),
-                                  ],
+                                trailing: SizedBox(
+                                  width: 96, // Largura fixa para evitar overflow
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      IconButton(
+                                        icon: const Icon(Icons.center_focus_strong),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          _centerMapOnLocation(point.location);
+                                        },
+                                        tooltip: 'Centralizar no mapa',
+                                        iconSize: 20,
+                                      ),
+                                      IconButton(
+                                        icon: const Icon(Icons.info_outline),
+                                        onPressed: () {
+                                          Navigator.pop(context);
+                                          _onMarkerTapped(point);
+                                        },
+                                        tooltip: 'Ver detalhes',
+                                        iconSize: 20,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
                             );
