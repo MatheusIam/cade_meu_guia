@@ -25,7 +25,7 @@ class _TourPointScreenState extends State<TourPointScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 3, vsync: this);
+    _tabController = TabController(length: 4, vsync: this);
     _pageController = PageController();
     _loadFavoriteStatus();
   }
@@ -289,9 +289,11 @@ class _TourPointScreenState extends State<TourPointScreen>
           children: [
             TabBar(
               controller: _tabController,
+              isScrollable: true,
               tabs: const [
                 Tab(icon: Icon(Icons.info), text: 'Detalhes'),
                 Tab(icon: Icon(Icons.map), text: 'Mapa'),
+                Tab(icon: Icon(Icons.eco), text: 'Preservação'),
                 Tab(icon: Icon(Icons.explore), text: 'Próximos'),
               ],
             ),
@@ -301,6 +303,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                 children: [
                   _buildDetailsTab(),
                   _buildMapTab(),
+                  _buildPreservationTab(),
                   _buildNearbyTab(),
                 ],
               ),
@@ -349,6 +352,77 @@ class _TourPointScreenState extends State<TourPointScreen>
         zoom: 16.0,
         width: double.infinity,
         height: double.infinity,
+      ),
+    );
+  }
+
+  Widget _buildPreservationTab() {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          PreservationWidget(
+            activityType: widget.tourPoint.activityType,
+          ),
+          const SizedBox(height: 16),
+          Card(
+            margin: const EdgeInsets.all(16),
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.volunteer_activism,
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 28,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        'Seja um Turista Consciente',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'O turismo sustentável é responsabilidade de todos. Ao visitar ${widget.tourPoint.name}, você está contribuindo para a preservação deste patrimônio para as futuras gerações.',
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildImpactStats(),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _showReportDialog(),
+                          icon: const Icon(Icons.report_problem),
+                          label: const Text('Reportar Problema'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.orange,
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: ElevatedButton.icon(
+                          onPressed: () => _sharePreservationTips(),
+                          icon: const Icon(Icons.share),
+                          label: const Text('Compartilhar Dicas'),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -536,6 +610,128 @@ class _TourPointScreenState extends State<TourPointScreen>
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildImpactStats() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Column(
+        children: [
+          Text(
+            'Impacto Positivo do Turismo Consciente',
+            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildStatItem('🌱', 'Preservação', 'Ambiental'),
+              _buildStatItem('🏛️', 'Patrimônio', 'Cultural'),
+              _buildStatItem('🤝', 'Economia', 'Local'),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(String icon, String label, String subtitle) {
+    return Column(
+      children: [
+        Text(icon, style: const TextStyle(fontSize: 24)),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          subtitle,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
+    );
+  }
+
+  void _showReportDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.report_problem, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('Reportar Problema'),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Encontrou algum problema neste local?',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+            const SizedBox(height: 16),
+            const Text('Tipos de problemas:'),
+            const SizedBox(height: 8),
+            ...['Lixo acumulado', 'Danos ao patrimônio', 'Vandalismo', 'Problemas de acesso', 'Outros']
+                .map((problem) => ListTile(
+                      leading: const Icon(Icons.circle, size: 8),
+                      title: Text(problem),
+                      dense: true,
+                      contentPadding: EdgeInsets.zero,
+                    )),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Problema reportado! Obrigado por ajudar na preservação.'),
+                  duration: Duration(seconds: 3),
+                ),
+              );
+            },
+            child: const Text('Reportar'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _sharePreservationTips() {
+    HapticFeedback.selectionClick();
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('Dicas de preservação compartilhadas!'),
+        duration: const Duration(seconds: 2),
+        action: SnackBarAction(
+          label: 'Ver Dicas',
+          onPressed: () {
+            // Navegar para aba de preservação se não estiver nela
+            if (_tabController.index != 2) {
+              _tabController.animateTo(2);
+            }
+          },
+        ),
+      ),
     );
   }
 }

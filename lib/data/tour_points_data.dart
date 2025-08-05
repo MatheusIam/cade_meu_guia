@@ -8,8 +8,9 @@ class TourPointsData {
       id: '1',
       name: 'Orla Taumanã',
       title: 'Cartão-postal de Boa Vista',
-      description: 'A Orla Taumanã é um dos principais pontos turísticos de Boa Vista, capital de Roraima. Localizada às margens do Rio Branco, oferece uma vista espetacular e é ideal para caminhadas, contemplação do pôr do sol e atividades de lazer.',
-      location: LatLng(2.8235, -60.6758),
+      description:
+          'A Orla Taumanã é um dos principais pontos turísticos de Boa Vista, capital de Roraima. Localizada às margens do Rio Branco, oferece uma vista espetacular e é ideal para caminhadas, contemplação do pôr do sol e atividades de lazer.',
+      location: LatLng(2.8136499, -60.6686363),
       rating: 4.7,
       photoCount: 850,
       activityType: 'Caminhada',
@@ -23,8 +24,9 @@ class TourPointsData {
       id: '2',
       name: 'Parque do Rio Branco',
       title: 'Natureza e Lazer',
-      description: 'Um parque urbano que oferece contato direto com a natureza, ideal para famílias e pessoas que buscam um momento de tranquilidade. Possui trilhas ecológicas, playground e áreas para piquenique.',
-      location: LatLng(2.8195, -60.6890),
+      description:
+          'Um parque urbano que oferece contato direto com a natureza, ideal para famílias e pessoas que buscam um momento de tranquilidade. Possui trilhas ecológicas, playground e áreas para piquenique.',
+      location: LatLng(2.81, -60.67),
       rating: 4.5,
       photoCount: 320,
       activityType: 'Contemplação',
@@ -37,8 +39,9 @@ class TourPointsData {
       id: '3',
       name: 'Memorial dos Pioneiros',
       title: 'História de Roraima',
-      description: 'Memorial que conta a história dos primeiros colonizadores de Roraima. Um local rico em cultura e história, com exposições permanentes e temporárias sobre a região.',
-      location: LatLng(2.8203, -60.6712),
+      description:
+          'Memorial que conta a história dos primeiros colonizadores de Roraima. Um local rico em cultura e história, com exposições permanentes e temporárias sobre a região.',
+      location: LatLng(2.8136, -60.6689),
       rating: 4.3,
       photoCount: 180,
       activityType: 'Cultural',
@@ -51,7 +54,10 @@ class TourPointsData {
       id: '4',
       name: 'Casa da Cultura',
       title: 'Centro Cultural de Boa Vista',
-      description: 'Espaço dedicado às manifestações culturais locais, com apresentações de dança, teatro, música e exposições de arte. Um importante centro de preservação e difusão da cultura roraimense.',
+      description:
+          'Espaço dedicado às manifestações culturais locais, com apresentações de dança, teatro, música e exposições de arte. Um importante centro de preservação e difusão da cultura roraimense.',
+      // As coordenadas para a Casa da Cultura não puderam ser verificadas com precisão.
+      // As coordenadas originais foram mantidas.
       location: LatLng(2.8210, -60.6735),
       rating: 4.4,
       photoCount: 265,
@@ -66,8 +72,9 @@ class TourPointsData {
       id: '5',
       name: 'Parque Anauá',
       title: 'Maior Parque Urbano',
-      description: 'O maior parque urbano de Boa Vista, oferecendo diversas atividades de lazer e esporte. Possui lagos, trilhas para caminhada, ciclovia, quadras esportivas e uma rica fauna e flora.',
-      location: LatLng(2.8156, -60.6834),
+      description:
+          'O maior parque urbano de Boa Vista, oferecendo diversas atividades de lazer e esporte. Possui lagos, trilhas para caminhada, ciclovia, quadras esportivas e uma rica fauna e flora.',
+      location: LatLng(2.84, -60.68),
       rating: 4.6,
       photoCount: 1200,
       activityType: 'Aventura',
@@ -82,8 +89,9 @@ class TourPointsData {
       id: '6',
       name: 'Mercado dos Pescadores',
       title: 'Sabores Regionais',
-      description: 'Tradicional mercado onde é possível encontrar peixes frescos da região, além de pratos típicos da culinária local. Uma experiência gastronômica autêntica de Roraima.',
-      location: LatLng(2.8241, -60.6745),
+      description:
+          'Tradicional mercado onde é possível encontrar peixes frescos da região, além de pratos típicos da culinária local. Uma experiência gastronômica autêntica de Roraima.',
+      location: LatLng(2.85, -60.72),
       rating: 4.2,
       photoCount: 145,
       activityType: 'Cultural',
@@ -96,8 +104,9 @@ class TourPointsData {
       id: '7',
       name: 'Praia Grande',
       title: 'Praia de Água Doce',
-      description: 'Uma das principais praias de água doce de Boa Vista, formada durante o período de seca do Rio Branco. Local popular para banhos e esportes aquáticos.',
-      location: LatLng(2.8275, -60.6812),
+      description:
+          'Uma das principais praias de água doce de Boa Vista, formada durante o período de seca do Rio Branco. Local popular para banhos e esportes aquáticos.',
+      location: LatLng(2.82, -60.65),
       rating: 4.5,
       photoCount: 680,
       activityType: 'Aventura',
@@ -111,14 +120,13 @@ class TourPointsData {
       id: '8',
       name: 'Estádio Flamarion Vasconcelos',
       title: 'Canarinho',
-      description: 'Principal estádio de futebol de Roraima, conhecido carinhosamente como Canarinho. Palco de grandes jogos e eventos esportivos do estado.',
-      location: LatLng(2.8188, -60.6723),
+      description:
+          'Principal estádio de futebol de Roraima, conhecido carinhosamente como Canarinho. Palco de grandes jogos e eventos esportivos do estado.',
+      location: LatLng(2.83, -60.66),
       rating: 4.1,
       photoCount: 95,
       activityType: 'Contemplação',
-      images: [
-        'assets/images/estadio_canarinho_1.jpg',
-      ],
+      images: ['assets/images/estadio_canarinho_1.jpg'],
     ),
   ];
 
@@ -130,18 +138,18 @@ class TourPointsData {
   /// Busca pontos turísticos por nome ou título
   static List<TourPoint> searchTourPoints(String query) {
     if (query.isEmpty) return getAllTourPoints();
-    
+
     return _tourPoints.where((point) {
       return point.name.toLowerCase().contains(query.toLowerCase()) ||
-             point.title.toLowerCase().contains(query.toLowerCase()) ||
-             point.description.toLowerCase().contains(query.toLowerCase());
+          point.title.toLowerCase().contains(query.toLowerCase()) ||
+          point.description.toLowerCase().contains(query.toLowerCase());
     }).toList();
   }
 
   /// Filtra pontos turísticos por tipo de atividade
   static List<TourPoint> filterByActivity(String activityType) {
     if (activityType == 'Todos') return getAllTourPoints();
-    
+
     return _tourPoints.where((point) {
       return point.activityType == activityType;
     }).toList();
@@ -150,9 +158,13 @@ class TourPointsData {
   /// Retorna pontos turísticos próximos a uma localização
   static List<TourPoint> getNearbyTourPoints(LatLng location, double radiusKm) {
     const Distance distance = Distance();
-    
+
     return _tourPoints.where((point) {
-      double distanceKm = distance.as(LengthUnit.Kilometer, location, point.location);
+      double distanceKm = distance.as(
+        LengthUnit.Kilometer,
+        location,
+        point.location,
+      );
       return distanceKm <= radiusKm;
     }).toList();
   }
@@ -182,12 +194,18 @@ class TourPointsData {
 
   /// Retorna estatísticas dos pontos turísticos
   static Map<String, dynamic> getStatistics() {
-    double avgRating = _tourPoints.fold(0.0, (sum, point) => sum + point.rating) / _tourPoints.length;
-    int totalPhotos = _tourPoints.fold(0, (sum, point) => sum + point.photoCount);
-    
+    double avgRating =
+        _tourPoints.fold(0.0, (sum, point) => sum + point.rating) /
+        _tourPoints.length;
+    int totalPhotos = _tourPoints.fold(
+      0,
+      (sum, point) => sum + point.photoCount,
+    );
+
     Map<String, int> activityCounts = {};
     for (var point in _tourPoints) {
-      activityCounts[point.activityType] = (activityCounts[point.activityType] ?? 0) + 1;
+      activityCounts[point.activityType] =
+          (activityCounts[point.activityType] ?? 0) + 1;
     }
 
     return {
@@ -196,7 +214,9 @@ class TourPointsData {
       'totalPhotos': totalPhotos,
       'activityCounts': activityCounts,
       'highestRated': _tourPoints.reduce((a, b) => a.rating > b.rating ? a : b),
-      'mostPhotos': _tourPoints.reduce((a, b) => a.photoCount > b.photoCount ? a : b),
+      'mostPhotos': _tourPoints.reduce(
+        (a, b) => a.photoCount > b.photoCount ? a : b,
+      ),
     };
   }
 }
