@@ -192,8 +192,8 @@ class _TourPointScreenState extends State<TourPointScreen>
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Theme.of(context).colorScheme.primary.withOpacity(0.7),
-                          Theme.of(context).colorScheme.primary.withOpacity(0.3),
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
+                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
                         ],
                       ),
                     ),
@@ -631,7 +631,7 @@ class _TourPointScreenState extends State<TourPointScreen>
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+        color: Theme.of(context).colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Column(

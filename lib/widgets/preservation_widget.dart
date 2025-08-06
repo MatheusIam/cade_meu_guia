@@ -169,7 +169,7 @@ class _PreservationWidgetState extends State<PreservationWidget> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: _getPriorityColor(tip.priority).withOpacity(0.1),
+          color: _getPriorityColor(tip.priority).withValues(alpha: 0.1),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _getPriorityColor(tip.priority),
@@ -206,7 +206,7 @@ class _PreservationWidgetState extends State<PreservationWidget> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _getPriorityColor(tip.priority).withOpacity(0.1),
+                  color: _getPriorityColor(tip.priority).withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -222,7 +222,7 @@ class _PreservationWidgetState extends State<PreservationWidget> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.surfaceVariant,
+                  color: Theme.of(context).colorScheme.surfaceContainerHighest,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(

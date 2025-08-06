@@ -55,7 +55,7 @@ class MapWidget extends StatelessWidget {
                             shape: BoxShape.circle,
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 blurRadius: 8,
                                 offset: const Offset(0, 4),
                               ),
@@ -72,7 +72,7 @@ class MapWidget extends StatelessWidget {
                               end: Alignment.bottomCenter,
                               colors: [
                                 Theme.of(context).colorScheme.primary,
-                                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                               ],
                             ),
                             shape: BoxShape.circle,
