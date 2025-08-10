@@ -21,7 +21,6 @@ class RatingFormDialog extends StatefulWidget {
 
 class _RatingFormDialogState extends State<RatingFormDialog> {
   final _formKey = GlobalKey<FormState>();
-  final _commentController = TextEditingController();
   
   double _overallRating = 3.0;
   double _accessibilityRating = 3.0;
@@ -49,12 +48,12 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
     _safetyRating = rating.safetyRating;
     _experienceRating = rating.experienceRating;
     _isRecommended = rating.isRecommended;
-    _commentController.text = rating.comment ?? '';
+  // Comentário removido
   }
 
   @override
   void dispose() {
-    _commentController.dispose();
+  // Comentário removido, sem controller para dispose
     super.dispose();
   }
 
@@ -77,7 +76,7 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
         infrastructureRating: _infrastructureRating,
         safetyRating: _safetyRating,
         experienceRating: _experienceRating,
-        comment: _commentController.text.trim().isEmpty ? null : _commentController.text.trim(),
+  comment: null, // Comentário removido
         dateCreated: DateTime.now(),
         isRecommended: _isRecommended,
       );
@@ -268,24 +267,7 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
                       ),
                       const SizedBox(height: 20),
                       
-                      // Comentário
-                      Text(
-                        'Comentário (opcional)',
-                        style: Theme.of(context).textTheme.titleMedium,
-                      ),
-                      const SizedBox(height: 8),
-                      TextFormField(
-                        controller: _commentController,
-                        maxLines: 4,
-                        maxLength: 500,
-                        decoration: InputDecoration(
-                          hintText: 'Conte mais sobre sua experiência...',
-                          border: OutlineInputBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          alignLabelWithHint: true,
-                        ),
-                      ),
+                      // Campo de comentário removido para simplificar a avaliação
                     ],
                   ),
                 ),

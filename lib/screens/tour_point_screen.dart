@@ -247,53 +247,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                   onPressed: _shareLocation,
                   tooltip: 'Compartilhar',
                 ),
-                PopupMenuButton<String>(
-                  onSelected: (value) {
-                    switch (value) {
-                      case 'directions':
-                        _openDirections();
-                        break;
-                      case 'gallery':
-                        _showImageGallery();
-                        break;
-                      case 'rating':
-                        _showRatingDialog();
-                        break;
-                    }
-                  },
-                  itemBuilder: (context) => [
-                    const PopupMenuItem(
-                      value: 'directions',
-                      child: Row(
-                        children: [
-                          Icon(Icons.directions),
-                          SizedBox(width: 8),
-                          Text('Direções'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'gallery',
-                      child: Row(
-                        children: [
-                          Icon(Icons.photo_library),
-                          SizedBox(width: 8),
-                          Text('Galeria'),
-                        ],
-                      ),
-                    ),
-                    const PopupMenuItem(
-                      value: 'rating',
-                      child: Row(
-                        children: [
-                          Icon(Icons.star_rate),
-                          SizedBox(width: 8),
-                          Text('Avaliar'),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
+                // Botão de avaliar removido do AppBar conforme solicitação
               ],
             ),
           ];
@@ -324,11 +278,6 @@ class _TourPointScreenState extends State<TourPointScreen>
             ),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: _openDirections,
-        icon: const Icon(Icons.directions),
-        label: const Text('Direções'),
       ),
     );
   }
@@ -523,25 +472,40 @@ class _TourPointScreenState extends State<TourPointScreen>
   }
 
   Widget _buildActionButtons() {
-    return Row(
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _openDirections,
-            icon: const Icon(Icons.directions),
-            label: const Text('Direções'),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: ElevatedButton.icon(
-            onPressed: _shareLocation,
-            icon: const Icon(Icons.share),
-            label: const Text('Compartilhar'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).colorScheme.secondary,
-              foregroundColor: Theme.of(context).colorScheme.onSecondary,
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _openDirections,
+                icon: const Icon(Icons.directions),
+                label: const Text('Direções'),
+              ),
             ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _shareLocation,
+                icon: const Icon(Icons.share),
+                label: const Text('Compartilhar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).colorScheme.secondary,
+                  foregroundColor: Theme.of(context).colorScheme.onSecondary,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        ElevatedButton.icon(
+          onPressed: _showRatingDialog,
+          icon: const Icon(Icons.star_rate),
+          label: const Text('Avaliar este Local'),
+          style: ElevatedButton.styleFrom(
+            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+            foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
           ),
         ),
       ],
@@ -568,6 +532,8 @@ class _TourPointScreenState extends State<TourPointScreen>
                   Icons.star,
                   'Avaliação',
                   '${widget.tourPoint.rating}/5.0',
+                  onTap: _showRatingDialog,
+                  tappable: true,
                 ),
                 const Divider(),
                 _buildInfoRow(
@@ -595,8 +561,8 @@ class _TourPointScreenState extends State<TourPointScreen>
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Row(
+  Widget _buildInfoRow(IconData icon, String label, String value,{VoidCallback? onTap,bool tappable=false}) {
+    final row = Row(
       children: [
         Icon(
           icon,
@@ -608,22 +574,52 @@ class _TourPointScreenState extends State<TourPointScreen>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                  color: Theme.of(context).colorScheme.onSurfaceVariant,
-                ),
+              Row(
+                children: [
+                  Text(
+                    label,
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      color: Theme.of(context).colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                  if (tappable)
+                    Padding(
+                      padding: const EdgeInsets.only(left:4.0),
+                      child: Icon(
+                        Icons.touch_app,
+                        size: 14,
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha:0.8),
+                      ),
+                    ),
+                ],
               ),
               Text(
                 value,
                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   fontWeight: FontWeight.w500,
+                  decoration: tappable ? TextDecoration.underline : null,
+                  decorationStyle: TextDecorationStyle.dotted,
                 ),
               ),
             ],
           ),
         ),
+        if (tappable)
+          Icon(
+            Icons.arrow_forward_ios,
+            size: 14,
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
       ],
+    );
+    if (!tappable) return row;
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(8),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        child: row,
+      ),
     );
   }
 

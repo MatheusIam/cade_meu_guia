@@ -7,6 +7,7 @@ import '../models/tour_point.dart';
 import '../data/tour_points_data.dart';
 import '../widgets/widgets.dart';
 import 'tour_point_screen.dart';
+import '../providers/favorites_provider.dart';
 
 /// Tela inicial com mapa principal e navegação
 class HomeScreen extends StatefulWidget {
@@ -183,43 +184,166 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Widget _buildFavoritesTab(ScrollController scrollController) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            'Pontos Favoritos',
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-        ),
-        Expanded(
-          child: ListView.builder(
-            controller: scrollController,
-            itemCount: _tourPoints.length,
-            itemBuilder: (context, index) {
-              final point = _tourPoints[index];
-              return ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  child: const Icon(Icons.location_on, color: Colors.white),
+    // Usa Consumer para reagir a mudanças nos favoritos
+    return Consumer<FavoritesProvider>(
+      builder: (context, favoritesProvider, child) {
+        final isLoaded = favoritesProvider.isLoaded;
+        final favoritePoints = favoritesProvider.getFavoriteTourPoints();
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'Pontos Favoritos',
+                      style: Theme.of(context).textTheme.headlineSmall,
+                    ),
+                  ),
+                  if (favoritePoints.isNotEmpty)
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: Theme.of(context).colorScheme.primaryContainer,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text(
+                        '${favoritePoints.length}',
+                        style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                              color: Theme.of(context).colorScheme.onPrimaryContainer,
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                    ),
+                  if (favoritePoints.length > 1)
+                    IconButton(
+                      tooltip: 'Limpar todos',
+                      icon: const Icon(Icons.delete_sweep),
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: const Text('Limpar Favoritos'),
+                            content: const Text('Tem certeza que deseja remover todos os favoritos?'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Limpar')),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await favoritesProvider.clearAllFavorites();
+                        }
+                      },
+                    ),
+                ],
+              ),
+            ),
+            if (!isLoaded)
+              const Expanded(
+                child: Center(
+                  child: CircularProgressIndicator(),
                 ),
-                title: Text(point.name),
-                subtitle: Text(point.title),
-                trailing: IconButton(
-                  icon: const Icon(Icons.favorite, color: Colors.red),
-                  onPressed: () {
-                    // Implementar funcionalidade de favoritos
+              )
+            else if (favoritePoints.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.favorite_border,
+                        size: 64,
+                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Nenhum favorito ainda',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Toque no ícone de coração em um ponto para adicioná-lo aqui.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              color: Theme.of(context).colorScheme.onSurfaceVariant,
+                            ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Expanded(
+                child: ListView.builder(
+                  controller: scrollController,
+                  itemCount: favoritePoints.length,
+                  itemBuilder: (context, index) {
+                    final point = favoritePoints[index];
+                    final isFav = favoritesProvider.isFavorite(point.id);
+                    return Dismissible(
+                      key: ValueKey('fav-${point.id}'),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.symmetric(horizontal: 20),
+                        decoration: BoxDecoration(
+                          color: Colors.red.withValues(alpha: 0.85),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      onDismissed: (_) async {
+                        await favoritesProvider.removeFavorite(point.id);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${point.name} removido dos favoritos'),
+                            action: SnackBarAction(
+                              label: 'Desfazer',
+                              onPressed: () async {
+                                await favoritesProvider.addFavorite(point.id);
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        child: ListTile(
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context).colorScheme.primary,
+                            child: const Icon(Icons.location_on, color: Colors.white),
+                          ),
+                          title: Text(point.name),
+                          subtitle: Text(point.title),
+                          trailing: IconButton(
+                            icon: Icon(
+                              isFav ? Icons.favorite : Icons.favorite_border,
+                              color: isFav ? Colors.red : Theme.of(context).iconTheme.color,
+                            ),
+                            onPressed: () async {
+                              await favoritesProvider.toggleFavorite(point);
+                            },
+                            tooltip: isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+                          ),
+                          onTap: () {
+                            Navigator.pop(context); // Fecha o bottom sheet
+                            _onMarkerTapped(point);
+                          },
+                        ),
+                      ),
+                    );
                   },
                 ),
-                onTap: () {
-                  Navigator.pop(context);
-                  _onMarkerTapped(point);
-                },
-              );
-            },
-          ),
-        ),
-      ],
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -485,11 +609,13 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         )
-                      : ListView.builder(
+                      : Consumer<FavoritesProvider>(
+                          builder: (context, favoritesProvider, child) => ListView.builder(
                           controller: scrollController,
                           itemCount: _filteredTourPoints.length,
                           itemBuilder: (context, index) {
                             final point = _filteredTourPoints[index];
+                            final isFav = favoritesProvider.isFavorite(point.id);
                             return Card(
                               margin: const EdgeInsets.symmetric(
                                 horizontal: 16,
@@ -556,35 +682,39 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                   ],
                                 ),
-                                trailing: SizedBox(
-                                  width: 96, // Largura fixa para evitar overflow
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      IconButton(
-                                        icon: const Icon(Icons.center_focus_strong),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          _centerMapOnLocation(point.location);
-                                        },
-                                        tooltip: 'Centralizar no mapa',
-                                        iconSize: 20,
-                                      ),
-                                      IconButton(
-                                        icon: const Icon(Icons.info_outline),
-                                        onPressed: () {
-                                          Navigator.pop(context);
-                                          _onMarkerTapped(point);
-                                        },
-                                        tooltip: 'Ver detalhes',
-                                        iconSize: 20,
-                                      ),
-                                    ],
-                                  ),
+                                trailing: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _CompactIconButton(
+                                      icon: Icons.center_focus_strong,
+                                      tooltip: 'Centralizar no mapa',
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        _centerMapOnLocation(point.location);
+                                      },
+                                    ),
+                                    _CompactIconButton(
+                                      icon: Icons.info_outline,
+                                      tooltip: 'Ver detalhes',
+                                      onTap: () {
+                                        Navigator.pop(context);
+                                        _onMarkerTapped(point);
+                                      },
+                                    ),
+                                    _CompactIconButton(
+                                      icon: isFav ? Icons.favorite : Icons.favorite_border,
+                                      color: isFav ? Colors.red : null,
+                                      tooltip: isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+                                      onTap: () async {
+                                        await favoritesProvider.toggleFavorite(point);
+                                      },
+                                    ),
+                                  ],
                                 ),
                               ),
                             );
                           },
+                        ),
                         ),
                 ),
               ],
@@ -746,6 +876,40 @@ class _HomeScreenState extends State<HomeScreen> {
         },
         tooltip: 'Centralizar mapa',
         child: const Icon(Icons.my_location),
+      ),
+    );
+  }
+}
+
+/// Botão de ícone compacto para uso em listas apertadas evitando overflow
+class _CompactIconButton extends StatelessWidget {
+  final IconData icon;
+  final String tooltip;
+  final VoidCallback onTap;
+  final Color? color;
+
+  const _CompactIconButton({
+    required this.icon,
+    required this.tooltip,
+    required this.onTap,
+    this.color,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      child: InkWell(
+        customBorder: const CircleBorder(),
+        onTap: onTap,
+        child: Tooltip(
+          message: tooltip,
+          child: Icon(
+            icon,
+            size: 20,
+            color: color ?? Theme.of(context).iconTheme.color,
+          ),
+        ),
       ),
     );
   }
