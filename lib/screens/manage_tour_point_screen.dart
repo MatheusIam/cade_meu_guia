@@ -1,0 +1,354 @@
+import 'package:flutter/material.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:uuid/uuid.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:geolocator/geolocator.dart';
+import '../utils/permission_helper.dart';
+import '../models/tour_point.dart';
+import '../data/tour_points_data.dart';
+
+class ManageTourPointScreen extends StatefulWidget {
+  final TourPoint? existing;
+  const ManageTourPointScreen({super.key, this.existing});
+
+  @override
+  State<ManageTourPointScreen> createState() => _ManageTourPointScreenState();
+}
+
+class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
+  final _formKey = GlobalKey<FormState>();
+  late final TextEditingController _nameCtrl;
+  late final TextEditingController _titleCtrl;
+  late final TextEditingController _descCtrl;
+  late final TextEditingController _latCtrl;
+  late final TextEditingController _lngCtrl;
+  late final TextEditingController _photosCtrl;
+  double _rating = 0.0;
+  String _activityType = 'Caminhada';
+  bool _saving = false;
+  final MapController _mapController = MapController();
+  late LatLng _current;
+  LatLng? _userLocation;
+  bool _locating = false;
+  bool _permissionDenied = false;
+
+  Future<void> _getUserLocation() async {
+    final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
+    if (!allowed) return;
+    setState(() { _locating = true; _permissionDenied = false; });
+    try {
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
+        setState(() { _permissionDenied = true; });
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      final latlng = LatLng(pos.latitude, pos.longitude);
+      setState(() {
+        _current = latlng;
+  _userLocation = latlng;
+        _latCtrl.text = latlng.latitude.toStringAsFixed(6);
+        _lngCtrl.text = latlng.longitude.toStringAsFixed(6);
+        _mapController.move(latlng, 16);
+      });
+    } catch (_) {} finally {
+      if (mounted) setState(() { _locating = false; });
+    }
+  }
+
+  final List<String> _activityTypes = const [
+    'Caminhada', 'Contemplação', 'Aventura', 'Cultural'
+  ];
+
+  bool get isEdit => widget.existing != null;
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    _nameCtrl = TextEditingController(text: e?.name ?? '');
+    _titleCtrl = TextEditingController(text: e?.title ?? '');
+    _descCtrl = TextEditingController(text: e?.description ?? '');
+    _latCtrl = TextEditingController(text: e?.location.latitude.toString() ?? '');
+    _lngCtrl = TextEditingController(text: e?.location.longitude.toString() ?? '');
+    _photosCtrl = TextEditingController(text: e?.photoCount.toString() ?? '0');
+    _rating = e?.rating ?? 0.0;
+    _activityType = e?.activityType ?? 'Caminhada';
+  _current = e?.location ?? LatLng(2.8235, -60.6758);
+  _latCtrl.text = _current.latitude.toStringAsFixed(6);
+  _lngCtrl.text = _current.longitude.toStringAsFixed(6);
+  }
+
+  @override
+  void dispose() {
+    _nameCtrl.dispose();
+    _titleCtrl.dispose();
+    _descCtrl.dispose();
+    _latCtrl.dispose();
+    _lngCtrl.dispose();
+    _photosCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _save() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _saving = true);
+    final id = widget.existing?.id ?? const Uuid().v4();
+    final lat = double.tryParse(_latCtrl.text) ?? 0.0;
+    final lng = double.tryParse(_lngCtrl.text) ?? 0.0;
+    final photos = int.tryParse(_photosCtrl.text) ?? 0;
+    final point = TourPoint(
+      id: id,
+      name: _nameCtrl.text.trim(),
+      title: _titleCtrl.text.trim(),
+      description: _descCtrl.text.trim(),
+      location: LatLng(lat, lng),
+      rating: _rating,
+      photoCount: photos,
+      activityType: _activityType,
+      images: widget.existing?.images ?? const [],
+    );
+    try {
+      if (isEdit) {
+        await TourPointsData.updateTourPoint(point);
+      } else {
+        await TourPointsData.addTourPoint(point);
+      }
+      if (mounted) Navigator.pop(context, point);
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _delete() async {
+    if (!isEdit) return;
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Excluir ponto'),
+        content: const Text('Tem certeza que deseja excluir este ponto?'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Excluir')),
+        ],
+      ),
+    );
+    if (confirm != true) return;
+    setState(() => _saving = true);
+    await TourPointsData.deleteTourPoint(widget.existing!.id);
+    if (mounted) Navigator.pop(context, true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(isEdit ? 'Editar Ponto' : 'Novo Ponto'),
+        actions: [
+          if (isEdit)
+            IconButton(
+              icon: const Icon(Icons.delete),
+              onPressed: _saving ? null : _delete,
+              tooltip: 'Excluir',
+            ),
+        ],
+      ),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16),
+          children: [
+            TextFormField(
+              controller: _nameCtrl,
+              decoration: const InputDecoration(labelText: 'Nome curto'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _titleCtrl,
+              decoration: const InputDecoration(labelText: 'Título'),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o título' : null,
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _descCtrl,
+              decoration: const InputDecoration(labelText: 'Descrição'),
+              maxLines: 4,
+              validator: (v) => (v == null || v.trim().length < 10) ? 'Descrição muito curta' : null,
+            ),
+            const SizedBox(height: 12),
+            Text('Localização', style: Theme.of(context).textTheme.titleMedium),
+            const SizedBox(height: 8),
+            SizedBox(
+              height: 250,
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(12),
+                child: Stack(
+                  children: [
+                    FlutterMap(
+                      mapController: _mapController,
+                      options: MapOptions(
+                        initialCenter: _current,
+                        initialZoom: 14,
+                        onPositionChanged: (pos, _) {
+                          final c = pos.center;
+                          setState(() {
+                            _current = c;
+                            _latCtrl.text = c.latitude.toStringAsFixed(6);
+                            _lngCtrl.text = c.longitude.toStringAsFixed(6);
+                          });
+                        },
+                      ),
+                      children: [
+                        TileLayer(
+                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                          userAgentPackageName: 'dev.meuapp.guia_turistico',
+                        ),
+                        if (_userLocation != null)
+                          MarkerLayer(markers: [
+                            Marker(
+                              point: _userLocation!,
+                              width: 28,
+                              height: 28,
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withOpacity(0.15),
+                                  shape: BoxShape.circle,
+                                ),
+                                alignment: Alignment.center,
+                                child: const Icon(Icons.circle, size: 12, color: Colors.blue),
+                              ),
+                            ),
+                          ]),
+                      ],
+                    ),
+                    Center(child: const Icon(Icons.location_pin, size: 46, color: Colors.red)),
+                    Positioned(
+                      left: 8,
+                      top: 8,
+                      child: Container(
+                        width: 70,
+                        height: 70,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.white, width: 2),
+                          shape: BoxShape.circle,
+                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)],
+                        ),
+                        clipBehavior: Clip.antiAlias,
+                        child: FlutterMap(
+                          mapController: MapController(),
+                          options: MapOptions(initialCenter: _current, initialZoom: 17),
+                          children: [
+                            TileLayer(
+                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                              userAgentPackageName: 'dev.meuapp.guia_turistico',
+                            ),
+                            MarkerLayer(markers:[
+                              Marker(point: _current, width: 20, height: 20, child: const Icon(Icons.location_pin, size: 20, color: Colors.red)),
+                              if (_userLocation != null)
+                                Marker(point: _userLocation!, width: 16, height: 16, child: const Icon(Icons.circle, size: 16, color: Colors.blue)),
+                            ])
+                          ],
+                        ),
+                      ),
+                    ),
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Column(children:[
+                        FloatingActionButton.small(
+                          heroTag: 'edit_locate',
+                          onPressed: _locating ? null : _getUserLocation,
+                          child: _locating ? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.my_location),
+                        ),
+                        const SizedBox(height: 8),
+                        FloatingActionButton.small(
+                          heroTag: 'edit_zoom_in',
+                          onPressed: () => _mapController.move(_current, _mapController.camera.zoom + 1),
+                          child: const Icon(Icons.add),
+                        ),
+                        const SizedBox(height: 8),
+                        FloatingActionButton.small(
+                          heroTag: 'edit_zoom_out',
+                          onPressed: () => _mapController.move(_current, _mapController.camera.zoom - 1),
+                          child: const Icon(Icons.remove),
+                        ),
+                      ]),
+                    ),
+                    if (_permissionDenied)
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        right: 8,
+                        child: Material(
+                          color: Colors.redAccent,
+                          borderRadius: BorderRadius.circular(8),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Text('Permissão de localização negada', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(children:[
+              Expanded(child: TextFormField(
+                controller: _latCtrl,
+                decoration: const InputDecoration(labelText: 'Latitude'),
+                readOnly: true,
+              )),
+              const SizedBox(width: 12),
+              Expanded(child: TextFormField(
+                controller: _lngCtrl,
+                decoration: const InputDecoration(labelText: 'Longitude'),
+                readOnly: true,
+              )),
+              IconButton(
+                icon: const Icon(Icons.my_location),
+                onPressed: () => _mapController.move(_current, _mapController.camera.zoom),
+                tooltip: 'Centralizar',
+              )
+            ]),
+            const SizedBox(height: 12),
+            DropdownButtonFormField<String>(
+              value: _activityType,
+              decoration: const InputDecoration(labelText: 'Tipo de atividade'),
+              items: _activityTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+              onChanged: (v) => setState(() => _activityType = v ?? _activityType),
+            ),
+            const SizedBox(height: 12),
+            Text('Nota inicial: ${_rating.toStringAsFixed(1)}'),
+            Slider(
+              value: _rating,
+              min: 0,
+              max: 5,
+              divisions: 50,
+              label: _rating.toStringAsFixed(1),
+              onChanged: (val) => setState(() => _rating = val),
+            ),
+            const SizedBox(height: 12),
+            TextFormField(
+              controller: _photosCtrl,
+              decoration: const InputDecoration(labelText: 'Qtd. fotos (estimativa)'),
+              keyboardType: TextInputType.number,
+              validator: (v) => (int.tryParse(v ?? '') == null) ? 'Inválida' : null,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: _saving ? null : _save,
+              icon: _saving ? const SizedBox(width:16,height:16,child: CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.save),
+              label: Text(_saving ? 'Salvando...' : (isEdit ? 'Salvar alterações' : 'Criar')),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+

@@ -15,6 +15,23 @@ class ExtraInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    IconData activityIcon;
+    switch (activityType) {
+      case 'Caminhada':
+        activityIcon = Icons.directions_walk;
+        break;
+      case 'Contemplação':
+        activityIcon = Icons.visibility;
+        break;
+      case 'Aventura':
+        activityIcon = Icons.landscape;
+        break;
+      case 'Cultural':
+        activityIcon = Icons.museum;
+        break;
+      default:
+        activityIcon = Icons.place;
+    }
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -32,7 +49,7 @@ class ExtraInfoSection extends StatelessWidget {
               label: 'Fotos',
             ),
             InfoItem(
-              icon: Icons.directions_walk,
+              icon: activityIcon,
               value: activityType,
               label: 'Atividade',
             ),

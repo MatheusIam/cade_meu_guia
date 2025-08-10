@@ -1,5 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Network + precise location (we request only precise; if user selects approximate we prompt again) -->
     <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Coarse is implicitly granted when requesting fine, but keep explicit for clarity -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <!-- Optional: foreground precise updates (not strictly needed unless using foreground service) -->
+    <!-- <uses-permission android:name="android.permission.FOREGROUND_SERVICE_LOCATION" /> -->
     <application
         android:label="cade_meu_guia"
         android:name="${applicationName}"

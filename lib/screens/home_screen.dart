@@ -8,6 +8,9 @@ import '../data/tour_points_data.dart';
 import '../widgets/widgets.dart';
 import 'tour_point_screen.dart';
 import '../providers/favorites_provider.dart';
+import 'settings_screen.dart';
+import 'add_tour_point_screen.dart';
+import '../providers/ratings_provider.dart';
 
 /// Tela inicial com mapa principal e navegação
 class HomeScreen extends StatefulWidget {
@@ -53,11 +56,14 @@ class _HomeScreenState extends State<HomeScreen> {
   void _applyFilters() {
     List<TourPoint> filtered = _tourPoints;
 
-    // Aplicar filtro de categoria
+    // Aplicar filtro de categoria (inclui pseudo-categoria Visitados)
     if (_selectedCategory != 'Todos') {
-      filtered = filtered
-          .where((point) => point.activityType == _selectedCategory)
-          .toList();
+      if (_selectedCategory == 'Visitados') {
+        final ratingsProvider = Provider.of<RatingsProvider>(context, listen: false);
+        filtered = filtered.where((p) => ratingsProvider.isTourPointVisited(p.id)).toList();
+      } else {
+        filtered = filtered.where((point) => point.activityType == _selectedCategory).toList();
+      }
     }
 
     // Aplicar filtro de busca
@@ -71,6 +77,21 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     _filteredTourPoints = filtered;
+  }
+
+  IconData _iconForActivity(String type) {
+    switch (type) {
+      case 'Caminhada':
+        return Icons.directions_walk;
+      case 'Contemplação':
+        return Icons.visibility;
+      case 'Aventura':
+        return Icons.landscape;
+      case 'Cultural':
+        return Icons.museum;
+      default:
+        return Icons.place;
+    }
   }
 
   void _clearFilters() {
@@ -625,7 +646,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 leading: CircleAvatar(
                                   backgroundColor: Theme.of(context).colorScheme.primary,
                                   child: Text(
-                                    point.rating.toString(),
+                                    point.rating.toStringAsFixed(2),
                                     style: const TextStyle(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
@@ -649,7 +670,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     Row(
                                       children: [
                                         Icon(
-                                          Icons.directions_walk,
+                                          _iconForActivity(point.activityType),
                                           size: 16,
                                           color: Theme.of(context).colorScheme.primary,
                                         ),
@@ -747,8 +768,40 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
           ],
         ),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+    // Usa AppBarTheme para melhor contraste no tema claro
+    backgroundColor: Theme.of(context).brightness == Brightness.light
+      ? Theme.of(context).appBarTheme.backgroundColor
+      : Theme.of(context).colorScheme.surfaceContainerHighest,
         actions: [
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Configurações',
+            onPressed: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const SettingsScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.add_location_alt),
+            tooltip: 'Adicionar ponto',
+            onPressed: () async {
+              final result = await Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (_) => const AddTourPointScreen(),
+                ),
+              );
+              if (result != null) {
+                // Recarrega lista incluindo novo ponto
+                setState(() {
+                  _tourPoints = TourPointsData.getAllTourPoints();
+                  _applyFilters();
+                });
+              }
+            },
+          ),
           IconButton(
             icon: Icon(
               themeProvider.themeMode == ThemeMode.dark
@@ -758,11 +811,6 @@ class _HomeScreenState extends State<HomeScreen> {
             onPressed: () => themeProvider.toggleTheme(),
             tooltip: 'Alternar Tema',
           ),
-          IconButton(
-            icon: const Icon(Icons.auto_mode),
-            onPressed: () => themeProvider.setSystemTheme(),
-            tooltip: 'Tema do Sistema',
-          ),
           PopupMenuButton<String>(
             onSelected: _filterByCategory,
             itemBuilder: (context) => [
@@ -771,6 +819,7 @@ class _HomeScreenState extends State<HomeScreen> {
               const PopupMenuItem(value: 'Contemplação', child: Text('Contemplação')),
               const PopupMenuItem(value: 'Aventura', child: Text('Aventura')),
               const PopupMenuItem(value: 'Cultural', child: Text('Cultural')),
+              const PopupMenuItem(value: 'Visitados', child: Text('Visitados')),
             ],
             icon: Icon(
               Icons.filter_list,

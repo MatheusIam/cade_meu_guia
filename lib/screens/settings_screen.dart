@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/favorites_provider.dart';
+import '../providers/ratings_provider.dart';
 import '../constants/app_constants.dart';
 import '../data/tour_points_data.dart';
 
@@ -14,7 +15,7 @@ class SettingsScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Configurações'),
-        backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+        // herda do AppBarTheme para contraste adequado
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),
@@ -91,6 +92,19 @@ class SettingsScreen extends StatelessWidget {
                         }
                       },
                     ),
+                    const SizedBox(height: 12),
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: Text(
+                        'Cores do tema',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    _SeedColorSelector(
+                      current: themeProvider.seedColor,
+                      onSelect: (c) => themeProvider.setSeedColor(c),
+                    ),
                   ],
                 );
               },
@@ -157,6 +171,7 @@ class SettingsScreen extends StatelessWidget {
 
   Widget _buildStatisticsSection(BuildContext context) {
     final stats = TourPointsData.getStatistics();
+  final ratingsProvider = Provider.of<RatingsProvider>(context, listen: true);
     
     return Card(
       child: Padding(
@@ -185,6 +200,13 @@ class SettingsScreen extends StatelessWidget {
               Icons.location_on,
               'Total de pontos turísticos',
               stats['totalPoints'].toString(),
+            ),
+            const Divider(),
+            _buildStatItem(
+              context,
+              Icons.check_circle,
+              'Pontos visitados (avaliados)',
+              ratingsProvider.visitedCount.toString(),
             ),
             const Divider(),
             _buildStatItem(
@@ -309,6 +331,75 @@ class SettingsScreen extends StatelessWidget {
             child: const Text('Confirmar'),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _SeedColorSelector extends StatelessWidget {
+  final Color current;
+  final ValueChanged<Color> onSelect;
+  const _SeedColorSelector({required this.current, required this.onSelect});
+
+  static const List<Color> _palette = [
+    Colors.orange,
+    Colors.blue,
+    Colors.green,
+    Colors.purple,
+    Colors.teal,
+    Colors.red,
+    Colors.indigo,
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        for (final color in _palette)
+          _ColorChip(
+            color: color,
+            selected: color.value == current.value,
+            onTap: () => onSelect(color),
+          ),
+      ],
+    );
+  }
+}
+
+class _ColorChip extends StatelessWidget {
+  final Color color;
+  final bool selected;
+  final VoidCallback onTap;
+  const _ColorChip({required this.color, required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final border = Border.all(color: selected ? Theme.of(context).colorScheme.onPrimary : Colors.grey.shade400, width: selected ? 3 : 1);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(24),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: color,
+          shape: BoxShape.circle,
+          border: border,
+          boxShadow: [
+            if (selected)
+              BoxShadow(
+                color: color.withValues(alpha: 0.6),
+                blurRadius: 8,
+                spreadRadius: 1,
+              ),
+          ],
+        ),
+        child: selected
+            ? Icon(Icons.check, color: Theme.of(context).colorScheme.onPrimary)
+            : null,
       ),
     );
   }

@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/ratings_provider.dart';
+import 'manage_tour_point_screen.dart';
 import '../widgets/widgets.dart';
 import '../widgets/rating_form_dialog.dart';
 import '../data/tour_points_data.dart';
@@ -175,12 +176,14 @@ class _TourPointScreenState extends State<TourPointScreen>
             SliverAppBar(
               expandedHeight: 300,
               pinned: true,
-              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              backgroundColor: Theme.of(context).brightness == Brightness.light
+                  ? Theme.of(context).appBarTheme.backgroundColor
+                  : Theme.of(context).colorScheme.surfaceContainerHighest,
               flexibleSpace: FlexibleSpaceBar(
                 title: Text(
                   widget.tourPoint.name,
                   style: TextStyle(
-                    color: Theme.of(context).colorScheme.onPrimaryContainer,
+                    color: Theme.of(context).appBarTheme.foregroundColor ?? Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -192,8 +195,8 @@ class _TourPointScreenState extends State<TourPointScreen>
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
-                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.7),
-                          Theme.of(context).colorScheme.primary.withValues(alpha: 0.3),
+                          Colors.black.withOpacity(0.25),
+                          Colors.black.withOpacity(0.05),
                         ],
                       ),
                     ),
@@ -247,6 +250,24 @@ class _TourPointScreenState extends State<TourPointScreen>
                   onPressed: _shareLocation,
                   tooltip: 'Compartilhar',
                 ),
+                if (TourPointsData.isCustomPoint(widget.tourPoint.id))
+                  IconButton(
+                    icon: const Icon(Icons.edit_location_alt),
+                    tooltip: 'Editar ponto',
+                    onPressed: () async {
+                      final updated = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => ManageTourPointScreen(existing: widget.tourPoint),
+                        ),
+                      );
+                      if (updated is TourPoint) {
+                        setState(() {
+                          // Atualizar referência local
+                          // widget.tourPoint é final; criar nova tela idealmente, simplificação aqui ignorada.
+                        });
+                      }
+                    },
+                  ),
                 // Botão de avaliar removido do AppBar conforme solicitação
               ],
             ),
@@ -292,9 +313,25 @@ class _TourPointScreenState extends State<TourPointScreen>
             title: widget.tourPoint.title,
             description: widget.tourPoint.description,
           ),
+          const SizedBox(height: 12),
+          Consumer<RatingsProvider>(
+            builder: (context, ratingsProvider, _) {
+              final visited = ratingsProvider.isTourPointVisited(widget.tourPoint.id);
+              if (!visited) return const SizedBox.shrink();
+              return Align(
+                alignment: Alignment.centerLeft,
+                child: Chip(
+                  avatar: const Icon(Icons.check_circle, color: Colors.white, size: 18),
+                  label: const Text('Visitado'),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  labelStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold),
+                ),
+              );
+            },
+          ),
           const SizedBox(height: 24),
           ExtraInfoSection(
-            rating: widget.tourPoint.rating.toString(),
+            rating: widget.tourPoint.rating.toStringAsFixed(2),
             photoCount: widget.tourPoint.photoCount.toString(),
             activityType: widget.tourPoint.activityType,
           ),
@@ -424,7 +461,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                   leading: CircleAvatar(
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     child: Text(
-                      point.rating.toString(),
+                      point.rating.toStringAsFixed(2),
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.bold,

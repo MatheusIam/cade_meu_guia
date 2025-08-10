@@ -1,4 +1,6 @@
+import 'dart:convert';
 import 'package:latlong2/latlong.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/tour_point.dart';
 
 /// Classe responsável por fornecer dados dos pontos turísticos
@@ -130,16 +132,73 @@ class TourPointsData {
     ),
   ];
 
+  static final List<TourPoint> _customTourPoints = []; // adicionados pelo usuário
+  static bool _loadedCustom = false;
+
+  static Future<void> _loadCustomPoints() async {
+    if (_loadedCustom) return;
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final stored = prefs.getStringList('custom_tour_points') ?? [];
+      for (final jsonStr in stored) {
+        try {
+          final map = jsonDecode(jsonStr) as Map<String, dynamic>;
+            _customTourPoints.add(TourPoint.fromMap(map));
+        } catch (_) {}
+      }
+    } finally {
+      _loadedCustom = true;
+    }
+  }
+
+  static Future<void> _saveCustomPoints() async {
+    final prefs = await SharedPreferences.getInstance();
+    final list = _customTourPoints.map((p) => jsonEncode(p.toMap())).toList();
+    await prefs.setStringList('custom_tour_points', list);
+  }
+
+  static Future<TourPoint> addTourPoint(TourPoint point) async {
+    await _loadCustomPoints();
+    _customTourPoints.add(point);
+    await _saveCustomPoints();
+    return point;
+  }
+
+  static Future<void> updateTourPoint(TourPoint point) async {
+    await _loadCustomPoints();
+    final index = _customTourPoints.indexWhere((p) => p.id == point.id);
+    if (index != -1) {
+      _customTourPoints[index] = point;
+      await _saveCustomPoints();
+    }
+  }
+
+  static Future<void> deleteTourPoint(String id) async {
+    await _loadCustomPoints();
+    _customTourPoints.removeWhere((p) => p.id == id);
+    await _saveCustomPoints();
+  }
+
+  static bool isCustomPoint(String id) {
+    return _customTourPoints.any((p) => p.id == id);
+  }
+
   /// Retorna todos os pontos turísticos
+  static Future<List<TourPoint>> getAllTourPointsAsync() async {
+    await _loadCustomPoints();
+    return List.unmodifiable([..._tourPoints, ..._customTourPoints]);
+  }
+
+  // Mantém compatibilidade síncrona (sem garantir incluir custom imediatamente)
   static List<TourPoint> getAllTourPoints() {
-    return List.unmodifiable(_tourPoints);
+    return List.unmodifiable([..._tourPoints, ..._customTourPoints]);
   }
 
   /// Busca pontos turísticos por nome ou título
   static List<TourPoint> searchTourPoints(String query) {
     if (query.isEmpty) return getAllTourPoints();
 
-    return _tourPoints.where((point) {
+  return getAllTourPoints().where((point) {
       return point.name.toLowerCase().contains(query.toLowerCase()) ||
           point.title.toLowerCase().contains(query.toLowerCase()) ||
           point.description.toLowerCase().contains(query.toLowerCase());
@@ -150,7 +209,7 @@ class TourPointsData {
   static List<TourPoint> filterByActivity(String activityType) {
     if (activityType == 'Todos') return getAllTourPoints();
 
-    return _tourPoints.where((point) {
+  return getAllTourPoints().where((point) {
       return point.activityType == activityType;
     }).toList();
   }
@@ -159,7 +218,7 @@ class TourPointsData {
   static List<TourPoint> getNearbyTourPoints(LatLng location, double radiusKm) {
     const Distance distance = Distance();
 
-    return _tourPoints.where((point) {
+  return getAllTourPoints().where((point) {
       double distanceKm = distance.as(
         LengthUnit.Kilometer,
         location,
@@ -172,7 +231,7 @@ class TourPointsData {
   /// Retorna um ponto turístico por ID
   static TourPoint? getTourPointById(String id) {
     try {
-      return _tourPoints.firstWhere((point) => point.id == id);
+      return getAllTourPoints().firstWhere((point) => point.id == id);
     } catch (e) {
       return null;
     }
@@ -180,41 +239,52 @@ class TourPointsData {
 
   /// Retorna pontos turísticos ordenados por avaliação
   static List<TourPoint> getTourPointsByRating() {
-    List<TourPoint> sortedPoints = List.from(_tourPoints);
+  List<TourPoint> sortedPoints = List.from(getAllTourPoints());
     sortedPoints.sort((a, b) => b.rating.compareTo(a.rating));
     return sortedPoints;
   }
 
   /// Retorna tipos de atividades únicos
   static List<String> getActivityTypes() {
-    Set<String> types = _tourPoints.map((point) => point.activityType).toSet();
+  Set<String> types = getAllTourPoints().map((point) => point.activityType).toSet();
     types.add('Todos');
     return types.toList()..sort();
   }
 
   /// Retorna estatísticas dos pontos turísticos
   static Map<String, dynamic> getStatistics() {
+    final all = getAllTourPoints();
+    if (all.isEmpty) {
+      return {
+        'totalPoints': 0,
+        'averageRating': 0.0,
+        'totalPhotos': 0,
+        'activityCounts': <String, int>{},
+        'highestRated': null,
+        'mostPhotos': null,
+      };
+    }
     double avgRating =
-        _tourPoints.fold(0.0, (sum, point) => sum + point.rating) /
-        _tourPoints.length;
-    int totalPhotos = _tourPoints.fold(
+        all.fold(0.0, (sum, point) => sum + point.rating) /
+        all.length;
+    int totalPhotos = all.fold(
       0,
       (sum, point) => sum + point.photoCount,
     );
 
     Map<String, int> activityCounts = {};
-    for (var point in _tourPoints) {
+    for (var point in all) {
       activityCounts[point.activityType] =
           (activityCounts[point.activityType] ?? 0) + 1;
     }
 
     return {
-      'totalPoints': _tourPoints.length,
+      'totalPoints': all.length,
       'averageRating': double.parse(avgRating.toStringAsFixed(1)),
       'totalPhotos': totalPhotos,
       'activityCounts': activityCounts,
-      'highestRated': _tourPoints.reduce((a, b) => a.rating > b.rating ? a : b),
-      'mostPhotos': _tourPoints.reduce(
+      'highestRated': all.reduce((a, b) => a.rating > b.rating ? a : b),
+      'mostPhotos': all.reduce(
         (a, b) => a.photoCount > b.photoCount ? a : b,
       ),
     };

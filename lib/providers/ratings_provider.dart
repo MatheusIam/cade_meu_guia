@@ -7,9 +7,13 @@ import '../models/tour_point_rating.dart';
 class RatingsProvider with ChangeNotifier {
   final List<TourPointRating> _ratings = [];
   bool _isLoaded = false;
+  final Set<String> _visitedTourPoints = {}; // IDs de pontos marcados como visitados
 
   List<TourPointRating> get ratings => List.unmodifiable(_ratings);
   bool get isLoaded => _isLoaded;
+  List<String> get visitedTourPointIds => List.unmodifiable(_visitedTourPoints);
+  int get visitedCount => _visitedTourPoints.length;
+  bool isTourPointVisited(String id) => _visitedTourPoints.contains(id);
 
   /// Carrega as avaliações salvas localmente
   Future<void> loadRatings() async {
@@ -17,7 +21,8 @@ class RatingsProvider with ChangeNotifier {
     
     try {
       final prefs = await SharedPreferences.getInstance();
-      final ratingsJson = prefs.getStringList('tour_point_ratings') ?? [];
+  final ratingsJson = prefs.getStringList('tour_point_ratings') ?? [];
+  final visitedIds = prefs.getStringList('visited_tour_points') ?? [];
       
       _ratings.clear();
       for (final ratingStr in ratingsJson) {
@@ -29,6 +34,9 @@ class RatingsProvider with ChangeNotifier {
           debugPrint('Erro ao carregar avaliação: $e');
         }
       }
+      _visitedTourPoints
+        ..clear()
+        ..addAll(visitedIds);
       
       _isLoaded = true;
       notifyListeners();
@@ -47,6 +55,7 @@ class RatingsProvider with ChangeNotifier {
           .map((rating) => jsonEncode(rating.toJson()))
           .toList();
       await prefs.setStringList('tour_point_ratings', ratingsJson);
+  await prefs.setStringList('visited_tour_points', _visitedTourPoints.toList());
     } catch (e) {
       debugPrint('Erro ao salvar avaliações: $e');
     }
@@ -59,6 +68,8 @@ class RatingsProvider with ChangeNotifier {
         r.tourPointId == rating.tourPointId && r.userId == rating.userId);
     
     _ratings.add(rating);
+  // Marca o ponto como visitado ao avaliar (irreversível)
+  _visitedTourPoints.add(rating.tourPointId);
     await _saveRatings();
     notifyListeners();
   }
@@ -170,6 +181,7 @@ class RatingsProvider with ChangeNotifier {
   /// Limpa todas as avaliações
   Future<void> clearAllRatings() async {
     _ratings.clear();
+  // Não limpamos visitas porque visita é irreversível
     await _saveRatings();
     notifyListeners();
   }
@@ -182,6 +194,7 @@ class RatingsProvider with ChangeNotifier {
         'averageAppRating': 0.0,
         'totalTourPointsRated': 0,
         'mostRatedTourPointId': null,
+  'visitedTourPoints': _visitedTourPoints.length,
       };
     }
 
@@ -203,6 +216,7 @@ class RatingsProvider with ChangeNotifier {
       'totalTourPointsRated': tourPointRatingsCount.length,
       'mostRatedTourPointId': mostRatedEntry.key,
       'mostRatedTourPointCount': mostRatedEntry.value,
+  'visitedTourPoints': _visitedTourPoints.length,
     };
   }
 }

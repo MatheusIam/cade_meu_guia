@@ -41,10 +41,11 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return Consumer<ThemeProvider>(
       builder: (context, themeProvider, child) {
+        final seed = themeProvider.seedColor;
         return MaterialApp(
           title: 'Cadê Meu Guia',
-          theme: AppThemes.lightTheme,
-          darkTheme: AppThemes.darkTheme,
+          theme: AppThemes.light(seed),
+            darkTheme: AppThemes.dark(seed),
           themeMode: themeProvider.themeMode,
           home: const HomeScreen(),
           debugShowCheckedModeBanner: false,
