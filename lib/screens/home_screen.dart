@@ -49,8 +49,12 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final pos = await Geolocator.getCurrentPosition();
       final latLng = LatLng(pos.latitude, pos.longitude);
-      _userLocation = latLng;
-      _mapController.move(latLng, 15.5);
+      if (mounted) {
+        setState(() {
+          _userLocation = latLng;
+        });
+        _mapController.move(latLng, 15.5);
+      }
     } catch(_){/* ignore */}
   }
 
