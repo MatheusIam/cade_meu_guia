@@ -1,3 +1,4 @@
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../models/preservation_tip.dart';
 import '../data/preservation_data.dart';
@@ -19,19 +20,19 @@ class PreservationWidget extends StatefulWidget {
 
 class _PreservationWidgetState extends State<PreservationWidget> {
   PreservationType? _selectedType;
-  List<PreservationTip> _displayedTips = [];
+  Future<List<PreservationTip>>? _futureTips;
 
   @override
   void initState() {
     super.initState();
-    _loadTips();
+    _futureTips = _initialLoad();
   }
 
-  void _loadTips() {
+  Future<List<PreservationTip>> _initialLoad() {
     if (widget.activityType != null && !widget.showAllTips) {
-      _displayedTips = PreservationData.getTipsForActivity(widget.activityType!);
+      return PreservationData.getTipsForActivity(widget.activityType!);
     } else {
-      _displayedTips = PreservationData.getTipsByPriority();
+      return PreservationData.getTipsByPriority();
     }
   }
 
@@ -39,9 +40,9 @@ class _PreservationWidgetState extends State<PreservationWidget> {
     setState(() {
       _selectedType = type;
       if (type == null) {
-        _displayedTips = PreservationData.getTipsByPriority();
+        _futureTips = PreservationData.getTipsByPriority();
       } else {
-        _displayedTips = PreservationData.getTipsByType(type);
+        _futureTips = PreservationData.getTipsByType(type);
       }
     });
   }
@@ -68,15 +69,15 @@ class _PreservationWidgetState extends State<PreservationWidget> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Como Preservar',
+                        'how_to_preserve'.tr(),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                       ),
                       Text(
-                        widget.activityType != null 
-                            ? 'Dicas para ${widget.activityType}'
-                            : 'Dicas de preservação e sustentabilidade',
+                        widget.activityType != null
+                            ? 'tips_for_activity'.tr(namedArgs: {'activity': widget.activityType!})
+                            : 'preservation_sustainability_tips'.tr(),
                         style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: Theme.of(context).colorScheme.onSurfaceVariant,
                         ),
@@ -89,30 +90,30 @@ class _PreservationWidgetState extends State<PreservationWidget> {
                     onSelected: _filterByType,
                     icon: Icon(
                       Icons.filter_list,
-                      color: _selectedType != null 
-                          ? Theme.of(context).colorScheme.primary 
+                      color: _selectedType != null
+                          ? Theme.of(context).colorScheme.primary
                           : null,
                     ),
                     itemBuilder: (context) => [
-                      const PopupMenuItem<PreservationType?>(
+                      PopupMenuItem<PreservationType?>(
                         value: null,
-                        child: Text('Todas'),
+                        child: Text('all_tips'.tr()),
                       ),
-                      const PopupMenuItem<PreservationType>(
+                      PopupMenuItem<PreservationType>(
                         value: PreservationType.environmental,
-                        child: Text('🌱 Ambiental'),
+                        child: Text('environmental_emoji'.tr()),
                       ),
-                      const PopupMenuItem<PreservationType>(
+                      PopupMenuItem<PreservationType>(
                         value: PreservationType.cultural,
-                        child: Text('🏛️ Cultural'),
+                        child: Text('cultural_emoji'.tr()),
                       ),
-                      const PopupMenuItem<PreservationType>(
+                      PopupMenuItem<PreservationType>(
                         value: PreservationType.social,
-                        child: Text('🤝 Social'),
+                        child: Text('social_emoji'.tr()),
                       ),
-                      const PopupMenuItem<PreservationType>(
+                      PopupMenuItem<PreservationType>(
                         value: PreservationType.general,
-                        child: Text('📋 Geral'),
+                        child: Text('general_emoji'.tr()),
                       ),
                     ],
                   ),
@@ -129,24 +130,37 @@ class _PreservationWidgetState extends State<PreservationWidget> {
               ),
             ),
           const Divider(height: 1),
-          if (_displayedTips.isEmpty)
-            const Padding(
-              padding: EdgeInsets.all(32),
-              child: Center(
-                child: Text('Nenhuma dica encontrada para este filtro.'),
-              ),
-            )
-          else
-            ListView.separated(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: _displayedTips.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) {
-                final tip = _displayedTips[index];
-                return _buildTipItem(tip);
-              },
-            ),
+          FutureBuilder<List<PreservationTip>>(
+            future: _futureTips,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Padding(
+                  padding: EdgeInsets.all(32),
+                  child: Center(child: CircularProgressIndicator()),
+                );
+              }
+              if (snapshot.hasError) {
+                return Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(child: Text('error_loading'.tr())),
+                );
+              }
+              final data = snapshot.data ?? [];
+              if (data.isEmpty) {
+                return Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Center(child: Text('no_tips_for_filter'.tr())),
+                );
+              }
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: data.length,
+                separatorBuilder: (context, index) => const Divider(height: 1),
+                itemBuilder: (context, index) => _buildTipItem(data[index]),
+              );
+            },
+          ),
           if (!widget.showAllTips && widget.activityType != null)
             Padding(
               padding: const EdgeInsets.all(16),
@@ -154,7 +168,7 @@ class _PreservationWidgetState extends State<PreservationWidget> {
                 child: TextButton.icon(
                   onPressed: () => _showAllTipsDialog(context),
                   icon: const Icon(Icons.visibility),
-                  label: const Text('Ver todas as dicas'),
+                  label: Text('see_all_tips'.tr()),
                 ),
               ),
             ),
@@ -169,7 +183,7 @@ class _PreservationWidgetState extends State<PreservationWidget> {
         width: 40,
         height: 40,
         decoration: BoxDecoration(
-          color: _getPriorityColor(tip.priority).withValues(alpha: 0.1),
+          color: _getPriorityColor(tip.priority).withAlpha(25),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: _getPriorityColor(tip.priority),
@@ -206,7 +220,7 @@ class _PreservationWidgetState extends State<PreservationWidget> {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                 decoration: BoxDecoration(
-                  color: _getPriorityColor(tip.priority).withValues(alpha: 0.1),
+                  color: _getPriorityColor(tip.priority).withAlpha(25),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Text(
@@ -257,26 +271,26 @@ class _PreservationWidgetState extends State<PreservationWidget> {
   String _getPriorityLabel(int priority) {
     switch (priority) {
       case 1:
-        return 'ESSENCIAL';
+        return 'essential'.tr();
       case 2:
-        return 'IMPORTANTE';
+        return 'important'.tr();
       case 3:
-        return 'RECOMENDADO';
+        return 'recommended'.tr();
       default:
-        return 'GERAL';
+        return 'general_cap'.tr();
     }
   }
 
   String _getTypeLabel(PreservationType type) {
     switch (type) {
       case PreservationType.environmental:
-        return 'Ambiental';
+        return 'environmental'.tr();
       case PreservationType.cultural:
-        return 'Cultural';
+        return 'cultural'.tr();
       case PreservationType.social:
-        return 'Social';
+        return 'social'.tr();
       case PreservationType.general:
-        return 'Geral';
+        return 'general'.tr();
     }
   }
 

@@ -15,6 +15,41 @@ class PreservationTip {
     required this.type,
     this.priority = 2,
   });
+
+  factory PreservationTip.fromJson(Map<String, dynamic> json) {
+    return PreservationTip(
+      id: json['id'] as String,
+      title: json['title'] as String,
+      description: json['description'] as String,
+      icon: json['icon'] as String? ?? '🌿',
+      type: _typeFromString(json['type'] as String),
+      priority: (json['priority'] as num?)?.toInt() ?? 2,
+    );
+  }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'title': title,
+        'description': description,
+        'icon': icon,
+        'type': type.name,
+        'priority': priority,
+      };
+
+  static PreservationType _typeFromString(String v) {
+    switch (v.toLowerCase()) {
+      case 'environmental':
+        return PreservationType.environmental;
+      case 'cultural':
+        return PreservationType.cultural;
+      case 'social':
+        return PreservationType.social;
+      case 'general':
+        return PreservationType.general;
+      default:
+        return PreservationType.general;
+    }
+  }
 }
 
 /// Tipos de preservação

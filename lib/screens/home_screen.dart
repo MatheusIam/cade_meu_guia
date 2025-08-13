@@ -26,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   List<TourPoint> _tourPoints = [];
   List<TourPoint> _filteredTourPoints = [];
-  String _selectedCategory = 'Todos'; // manter valor interno PT para compat c/ dados; mapear para chaves na UI
+  String _selectedCategory = 'all';
   String _searchQuery = '';
 
   @override
@@ -57,17 +57,17 @@ class _HomeScreenState extends State<HomeScreen> {
   void _applyFilters() {
     List<TourPoint> filtered = _tourPoints;
 
-    // Aplicar filtro de categoria (inclui pseudo-categoria Visitados)
-    if (_selectedCategory != 'Todos') {
-      if (_selectedCategory == 'Visitados') {
+    if (_selectedCategory != 'all') {
+      if (_selectedCategory == 'visited') {
         final ratingsProvider = Provider.of<RatingsProvider>(context, listen: false);
         filtered = filtered.where((p) => ratingsProvider.isTourPointVisited(p.id)).toList();
       } else {
-        filtered = filtered.where((point) => point.activityType == _selectedCategory).toList();
+        // Mapeia a chave de tradução de volta para o valor em português usado nos dados
+        final categoryInPortuguese = _mapTranslationKeyToPortuguese(_selectedCategory);
+        filtered = filtered.where((point) => point.activityType == categoryInPortuguese).toList();
       }
     }
 
-    // Aplicar filtro de busca
     if (_searchQuery.isNotEmpty) {
       filtered = filtered.where((point) {
         return point.name.toLowerCase().contains(_searchQuery.toLowerCase()) ||
@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   void _clearFilters() {
     setState(() {
-      _selectedCategory = 'Todos';
+      _selectedCategory = 'all';
       _searchQuery = '';
       _filteredTourPoints = _tourPoints;
     });
@@ -106,8 +106,8 @@ class _HomeScreenState extends State<HomeScreen> {
   String _getFilterSummary() {
     List<String> filters = [];
     
-    if (_selectedCategory != 'Todos') {
-      filters.add(_selectedCategory);
+    if (_selectedCategory != 'all') {
+      filters.add(_localizedCategory(_selectedCategory));
     }
     
     if (_searchQuery.isNotEmpty) {
@@ -115,19 +115,26 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     
     String summary = filters.join(' • ');
-    return '${_filteredTourPoints.length} ponto(s) - $summary';
+    return 'points_summary'.tr(namedArgs: {'count': _filteredTourPoints.length.toString(), 'summary': summary});
   }
 
-  String _localizedCategory(String category) {
-    switch (category) {
-      case 'Todos': return 'all'.tr();
-      case 'Caminhada': return 'hiking'.tr();
-      case 'Contemplação': return 'contemplation'.tr();
-      case 'Aventura': return 'adventure'.tr();
-      case 'Cultural': return 'cultural'.tr();
-      case 'Visitados': return 'visited'.tr();
+  String _localizedCategory(String categoryKey) {
+    return categoryKey.tr();
+  }
+
+  String _mapTranslationKeyToPortuguese(String key) {
+    switch (key) {
+      case 'hiking':
+        return 'Caminhada';
+      case 'contemplation':
+        return 'Contemplação';
+      case 'adventure':
+        return 'Aventura';
+      case 'cultural':
+        return 'Cultural';
+      default:
+        return key;
     }
-    return category;
   }
 
   void _onMarkerTapped(TourPoint tourPoint) {
@@ -335,7 +342,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           SnackBar(
                             content: Text('${point.name} ${'removed_from_favorites'.tr()}'),
                             action: SnackBarAction(
-                              label: 'Desfazer',
+                              label: 'undo'.tr(),
                               onPressed: () async {
                                 await favoritesProvider.addFavorite(point.id);
                               },
@@ -565,20 +572,20 @@ class _HomeScreenState extends State<HomeScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            'Todos', // valores internos
-                            'Caminhada',
-                            'Contemplação',
-                            'Aventura',
-                            'Cultural'
-                          ].map((category) {
-                            final isSelected = category == _selectedCategory;
+                            'all',
+                            'hiking',
+                            'contemplation',
+                            'adventure',
+                            'cultural'
+                          ].map((categoryKey) {
+                            final isSelected = categoryKey == _selectedCategory;
                             return Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: FilterChip(
-                                label: Text(_localizedCategory(category)),
+                                label: Text(_localizedCategory(categoryKey)),
                                 selected: isSelected,
                                 onSelected: (selected) {
-                                  _filterByCategory(category);
+                                  _filterByCategory(categoryKey);
                                   setModalState(() {}); // Atualiza o modal sem fechar
                                 },
                               ),
@@ -596,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
                           ),
-                          if (_selectedCategory != 'Todos' || _searchQuery.isNotEmpty)
+                          if (_selectedCategory != 'all' || _searchQuery.isNotEmpty)
                             TextButton.icon(
                               onPressed: () {
                                 _clearFilters();
@@ -770,7 +777,7 @@ class _HomeScreenState extends State<HomeScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Text('app_name'.tr()),
-            if (_selectedCategory != 'Todos' || _searchQuery.isNotEmpty)
+            if (_selectedCategory != 'all' || _searchQuery.isNotEmpty)
               Text(
                 _getFilterSummary(),
                 style: const TextStyle(
@@ -827,16 +834,16 @@ class _HomeScreenState extends State<HomeScreen> {
           PopupMenuButton<String>(
             onSelected: _filterByCategory,
             itemBuilder: (context) => [
-              PopupMenuItem(value: 'Todos', child: Text('all'.tr())),
-              PopupMenuItem(value: 'Caminhada', child: Text('hiking'.tr())),
-              PopupMenuItem(value: 'Contemplação', child: Text('contemplation'.tr())),
-              PopupMenuItem(value: 'Aventura', child: Text('adventure'.tr())),
-              PopupMenuItem(value: 'Cultural', child: Text('cultural'.tr())),
-              PopupMenuItem(value: 'Visitados', child: Text('visited'.tr())),
+              PopupMenuItem(value: 'all', child: Text('all'.tr())),
+              PopupMenuItem(value: 'hiking', child: Text('hiking'.tr())),
+              PopupMenuItem(value: 'contemplation', child: Text('contemplation'.tr())),
+              PopupMenuItem(value: 'adventure', child: Text('adventure'.tr())),
+              PopupMenuItem(value: 'cultural', child: Text('cultural'.tr())),
+              PopupMenuItem(value: 'visited', child: Text('visited'.tr())),
             ],
             icon: Icon(
               Icons.filter_list,
-              color: _selectedCategory != 'Todos' 
+              color: _selectedCategory != 'all' 
                   ? Theme.of(context).colorScheme.secondary 
                   : null,
             ),
@@ -910,7 +917,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: Stack(
               children: [
                 const Icon(Icons.explore),
-                if (_selectedCategory != 'Todos' || _searchQuery.isNotEmpty)
+                if (_selectedCategory != 'all' || _searchQuery.isNotEmpty)
                   Positioned(
                     right: 0,
                     top: 0,

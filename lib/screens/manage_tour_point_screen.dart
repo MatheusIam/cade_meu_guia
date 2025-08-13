@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -23,14 +24,53 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
   late final TextEditingController _latCtrl;
   late final TextEditingController _lngCtrl;
   late final TextEditingController _photosCtrl;
-  double _rating = 0.0;
-  String _activityType = 'Caminhada';
-  bool _saving = false;
   final MapController _mapController = MapController();
+
+  double _rating = 0.0;
+  String _activityType = 'hiking';
+  bool _saving = false;
   late LatLng _current;
   LatLng? _userLocation;
   bool _locating = false;
   bool _permissionDenied = false;
+
+  bool get isEdit => widget.existing != null;
+
+  final List<String> _activityTypes = const [
+    'hiking', 'contemplation', 'adventure', 'cultural'
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    final e = widget.existing;
+    _nameCtrl = TextEditingController(text: e?.name ?? '');
+    _titleCtrl = TextEditingController(text: e?.title ?? '');
+    _descCtrl = TextEditingController(text: e?.description ?? '');
+    _latCtrl = TextEditingController();
+    _lngCtrl = TextEditingController();
+    _photosCtrl = TextEditingController(text: e?.photoCount.toString() ?? '0');
+    _rating = e?.rating ?? 0.0;
+    _activityType = _mapActivityTypeToKey(e?.activityType ?? 'hiking');
+    _current = e?.location ?? LatLng(2.8235, -60.6758);
+    _latCtrl.text = _current.latitude.toStringAsFixed(6);
+    _lngCtrl.text = _current.longitude.toStringAsFixed(6);
+  }
+
+  String _mapActivityTypeToKey(String activityType) {
+    switch (activityType) {
+      case 'Caminhada':
+        return 'hiking';
+      case 'Contemplação':
+        return 'contemplation';
+      case 'Aventura':
+        return 'adventure';
+      case 'Cultural':
+        return 'cultural';
+      default:
+        return activityType; // assume already english key
+    }
+  }
 
   Future<void> _getUserLocation() async {
     final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
@@ -49,37 +89,16 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
       final latlng = LatLng(pos.latitude, pos.longitude);
       setState(() {
         _current = latlng;
-  _userLocation = latlng;
+        _userLocation = latlng;
         _latCtrl.text = latlng.latitude.toStringAsFixed(6);
         _lngCtrl.text = latlng.longitude.toStringAsFixed(6);
         _mapController.move(latlng, 16);
       });
-    } catch (_) {} finally {
+    } catch (_) {
+      // ignore
+    } finally {
       if (mounted) setState(() { _locating = false; });
     }
-  }
-
-  final List<String> _activityTypes = const [
-    'Caminhada', 'Contemplação', 'Aventura', 'Cultural'
-  ];
-
-  bool get isEdit => widget.existing != null;
-
-  @override
-  void initState() {
-    super.initState();
-    final e = widget.existing;
-    _nameCtrl = TextEditingController(text: e?.name ?? '');
-    _titleCtrl = TextEditingController(text: e?.title ?? '');
-    _descCtrl = TextEditingController(text: e?.description ?? '');
-    _latCtrl = TextEditingController(text: e?.location.latitude.toString() ?? '');
-    _lngCtrl = TextEditingController(text: e?.location.longitude.toString() ?? '');
-    _photosCtrl = TextEditingController(text: e?.photoCount.toString() ?? '0');
-    _rating = e?.rating ?? 0.0;
-    _activityType = e?.activityType ?? 'Caminhada';
-  _current = e?.location ?? LatLng(2.8235, -60.6758);
-  _latCtrl.text = _current.latitude.toStringAsFixed(6);
-  _lngCtrl.text = _current.longitude.toStringAsFixed(6);
   }
 
   @override
@@ -128,11 +147,11 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Excluir ponto'),
-        content: const Text('Tem certeza que deseja excluir este ponto?'),
+        title: Text('delete_point_title'.tr()),
+        content: Text('delete_point_question'.tr()),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Excluir')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('cancel'.tr())),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('delete'.tr())),
         ],
       ),
     );
@@ -146,13 +165,13 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? 'Editar Ponto' : 'Novo Ponto'),
+        title: Text(isEdit ? 'edit_point'.tr() : 'new_point'.tr()),
         actions: [
           if (isEdit)
             IconButton(
               icon: const Icon(Icons.delete),
               onPressed: _saving ? null : _delete,
-              tooltip: 'Excluir',
+              tooltip: 'tooltip_delete'.tr(),
             ),
         ],
       ),
@@ -163,24 +182,24 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
           children: [
             TextFormField(
               controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nome curto'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
+              decoration: InputDecoration(labelText: 'short_name'.tr()),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'validation_enter_name'.tr() : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _titleCtrl,
-              decoration: const InputDecoration(labelText: 'Título'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o título' : null,
+              decoration: InputDecoration(labelText: 'title_label'.tr()),
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'validation_enter_title'.tr() : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _descCtrl,
-              decoration: const InputDecoration(labelText: 'Descrição'),
+              decoration: InputDecoration(labelText: 'description_label'.tr()),
               maxLines: 4,
-              validator: (v) => (v == null || v.trim().length < 10) ? 'Descrição muito curta' : null,
+              validator: (v) => (v == null || v.trim().length < 10) ? 'validation_desc_too_short'.tr() : null,
             ),
             const SizedBox(height: 12),
-            Text('Localização', style: Theme.of(context).textTheme.titleMedium),
+            Text('location'.tr(), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             SizedBox(
               height: 250,
@@ -225,7 +244,7 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                           ]),
                       ],
                     ),
-                    Center(child: const Icon(Icons.location_pin, size: 46, color: Colors.red)),
+                    const Center(child: Icon(Icons.location_pin, size: 46, color: Colors.red)),
                     Positioned(
                       left: 8,
                       top: 8,
@@ -260,19 +279,19 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                       top: 8,
                       child: Column(children:[
                         FloatingActionButton.small(
-                          heroTag: 'edit_locate',
+                          heroTag: 'manage_locate',
                           onPressed: _locating ? null : _getUserLocation,
                           child: _locating ? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.my_location),
                         ),
                         const SizedBox(height: 8),
                         FloatingActionButton.small(
-                          heroTag: 'edit_zoom_in',
+                          heroTag: 'manage_zoom_in',
                           onPressed: () => _mapController.move(_current, _mapController.camera.zoom + 1),
                           child: const Icon(Icons.add),
                         ),
                         const SizedBox(height: 8),
                         FloatingActionButton.small(
-                          heroTag: 'edit_zoom_out',
+                          heroTag: 'manage_zoom_out',
                           onPressed: () => _mapController.move(_current, _mapController.camera.zoom - 1),
                           child: const Icon(Icons.remove),
                         ),
@@ -288,7 +307,7 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('Permissão de localização negada', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
+                            child: Text('error_location_permission_denied'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
                           ),
                         ),
                       ),
@@ -300,30 +319,32 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
             Row(children:[
               Expanded(child: TextFormField(
                 controller: _latCtrl,
-                decoration: const InputDecoration(labelText: 'Latitude'),
+                decoration: InputDecoration(labelText: 'latitude'.tr()),
                 readOnly: true,
               )),
               const SizedBox(width: 12),
               Expanded(child: TextFormField(
                 controller: _lngCtrl,
-                decoration: const InputDecoration(labelText: 'Longitude'),
+                decoration: InputDecoration(labelText: 'longitude'.tr()),
                 readOnly: true,
               )),
               IconButton(
                 icon: const Icon(Icons.my_location),
                 onPressed: () => _mapController.move(_current, _mapController.camera.zoom),
-                tooltip: 'Centralizar',
+                tooltip: 'tooltip_center'.tr(),
               )
             ]),
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _activityType,
-              decoration: const InputDecoration(labelText: 'Tipo de atividade'),
-              items: _activityTypes.map((t) => DropdownMenuItem(value: t, child: Text(t))).toList(),
+              decoration: InputDecoration(labelText: 'activity_type'.tr()),
+              items: _activityTypes
+                  .map((t) => DropdownMenuItem(value: t, child: Text(t.tr())))
+                  .toList(),
               onChanged: (v) => setState(() => _activityType = v ?? _activityType),
             ),
             const SizedBox(height: 12),
-            Text('Nota inicial: ${_rating.toStringAsFixed(1)}'),
+            Text('${'initial_rating'.tr()}: ${_rating.toStringAsFixed(1)}'),
             Slider(
               value: _rating,
               min: 0,
@@ -335,15 +356,17 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _photosCtrl,
-              decoration: const InputDecoration(labelText: 'Qtd. fotos (estimativa)'),
+              decoration: InputDecoration(labelText: 'photos_quantity_hint'.tr()),
               keyboardType: TextInputType.number,
-              validator: (v) => (int.tryParse(v ?? '') == null) ? 'Inválida' : null,
+              validator: (v) => (int.tryParse(v ?? '') == null) ? 'validation_invalid'.tr() : null,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _saving ? null : _save,
-              icon: _saving ? const SizedBox(width:16,height:16,child: CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.save),
-              label: Text(_saving ? 'Salvando...' : (isEdit ? 'Salvar alterações' : 'Criar')),
+              icon: _saving
+                  ? const SizedBox(width:16,height:16,child: CircularProgressIndicator(strokeWidth:2))
+                  : const Icon(Icons.save),
+              label: Text(_saving ? 'saving'.tr() : (isEdit ? 'save_changes'.tr() : 'create'.tr())),
             ),
           ],
         ),
@@ -351,4 +374,4 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
     );
   }
 }
-
+ 

@@ -196,5 +196,22 @@
   ,"problem_list_vandalism": "Vandalismo"
   ,"problem_list_access": "Problemas de acesso"
   ,"problem_list_other": "Outros"
-  ,"preservation_tips_shared": "Dicas de preservação compartilhadas!"
+  ,"preservation_tips_shared": "Dicas de preservação compartilhadas!",
+  "all_preservation_tips_title": "Dicas de Preservação",
+  "tooltip_delete": "Excluir",
+  "validation_enter_name": "Informe o nome",
+  "validation_enter_title": "Informe o título",
+  "validation_desc_too_short": "Descrição muito curta",
+  "location": "Localização",
+  "error_location_permission_denied": "Permissão de localização negada",
+  "tooltip_center": "Centralizar",
+  "validation_invalid": "Inválida",
+  "how_to_preserve": "Como Preservar",
+  "preservation_sustainability_tips": "Dicas de preservação e sustentabilidade",
+  "no_tips_for_filter": "Nenhuma dica encontrada para este filtro.",
+  "environmental_emoji": "🌱 Ambiental",
+  "cultural_emoji": "🏛️ Cultural",
+  "social_emoji": "🤝 Social",
+  "general_emoji": "📋 Geral",
+  "points_summary": "{count} ponto(s) - {summary}"
 }

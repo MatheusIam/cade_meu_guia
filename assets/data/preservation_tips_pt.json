@@ -1,0 +1,17 @@
+[
+  {"id":"1","title":"Não deixe lixo no local","description":"Sempre leve seu lixo com você ou descarte em locais apropriados. Restos de comida, embalagens e cigarros podem prejudicar a fauna e flora local.","icon":"🗑️","type":"environmental","priority":1},
+  {"id":"2","title":"Respeite a vida selvagem","description":"Não alimente animais silvestres, mantenha distância segura e não perturbe seus habitats naturais. Isso preserva o comportamento natural dos animais.","icon":"🦋","type":"environmental","priority":1},
+  {"id":"3","title":"Use trilhas demarcadas","description":"Siga sempre as trilhas oficiais para evitar erosão do solo e danos à vegetação. Não crie atalhos ou novos caminhos.","icon":"🥾","type":"environmental","priority":1},
+  {"id":"4","title":"Economize água","description":"Use a água de forma consciente, especialmente em regiões com escassez. Não desperdice em torneiras, chuveiros ou piscinas.","icon":"💧","type":"environmental","priority":2},
+  {"id":"5","title":"Não retire plantas ou pedras","description":"Deixe tudo como encontrou. Plantas, pedras, flores e outros elementos naturais fazem parte do ecossistema local.","icon":"🌸","type":"environmental","priority":1},
+  {"id":"6","title":"Respeite o patrimônio histórico","description":"Não toque, risque ou danifique monumentos, estátuas, placas históricas ou construções antigas. Elas são patrimônio de todos.","icon":"🏛️","type":"cultural","priority":1},
+  {"id":"7","title":"Valorize a cultura local","description":"Conheça e respeite as tradições locais, compre de artesãos da região e valorize a culinária típica.","icon":"🎭","type":"cultural","priority":2},
+  {"id":"8","title":"Fotografe com consciência","description":"Ao fotografar pessoas locais, peça sempre permissão. Respeite locais sagrados onde fotos podem ser proibidas.","icon":"📸","type":"cultural","priority":2},
+  {"id":"9","title":"Apoie o comércio local","description":"Prefira estabelecimentos locais, guias da região e produtos artesanais. Isso fortalece a economia da comunidade.","icon":"🏪","type":"social","priority":2},
+  {"id":"10","title":"Seja respeitoso com moradores","description":"Trate os moradores locais com respeito e cordialidade. Você é um visitante na casa deles.","icon":"🤝","type":"social","priority":1},
+  {"id":"11","title":"Respeite horários de funcionamento","description":"Siga os horários estabelecidos para visitação e evite fazer barulho excessivo, especialmente em áreas residenciais.","icon":"⏰","type":"social","priority":2},
+  {"id":"12","title":"Informe-se antes da visita","description":"Pesquise sobre regras específicas do local, taxa de visitação, época ideal para visitar e equipamentos necessários.","icon":"📚","type":"general","priority":2},
+  {"id":"13","title":"Viaje em grupos pequenos","description":"Grupos menores causam menos impacto ambiental e permitem uma experiência mais autêntica e respeitosa.","icon":"👥","type":"general","priority":3},
+  {"id":"14","title":"Use produtos biodegradáveis","description":"Prefira protetor solar, repelente e produtos de higiene biodegradáveis para não contaminar rios e solo.","icon":"🧴","type":"environmental","priority":2},
+  {"id":"15","title":"Eduque outros visitantes","description":"Compartilhe conhecimento sobre preservação com outros turistas. Seja um exemplo positivo de turismo consciente.","icon":"🎓","type":"general","priority":3}
+]
