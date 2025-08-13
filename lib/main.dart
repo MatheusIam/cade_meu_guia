@@ -6,6 +6,8 @@ import 'providers/favorites_provider.dart';
 import 'providers/ratings_provider.dart';
 import 'themes/app_themes.dart';
 import 'screens/home_screen.dart';
+import 'repositories/tour_point_repository.dart';
+import 'repositories/local_tour_point_repository.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -20,6 +22,7 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (context) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => FavoritesProvider()),
           ChangeNotifierProvider(create: (context) => RatingsProvider()),
+          Provider<ITourPointRepository>(create: (_) => LocalTourPointRepository()),
         ],
         child: const MainApp(),
       ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
+import 'package:provider/provider.dart';
+import '../repositories/tour_point_repository.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/permission_helper.dart';
@@ -27,6 +29,9 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
   LatLng? _userLocation; // posição real do usuário para exibir no mapa
   bool _locating = false;
   bool _permissionDenied = false;
+  String? _selectedParentAreaId; // área pai opcional
+  List<TourPoint> _areas = [];
+  bool _loadingAreas = true;
 
   Future<void> _getUserLocation() async {
     final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
@@ -78,6 +83,27 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
     super.dispose();
   }
 
+  @override
+  void initState() {
+    super.initState();
+    // Carrega áreas principais para vincular
+    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAreas());
+  }
+
+  Future<void> _loadAreas() async {
+    try {
+      setState(() => _loadingAreas = true);
+      final repo = context.read<ITourPointRepository>();
+      final list = await repo.getMain();
+      setState(() {
+        // apenas itens considerados área
+        _areas = list.where((a) => a.isArea).toList();
+      });
+    } finally {
+      if (mounted) setState(() => _loadingAreas = false);
+    }
+  }
+
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
@@ -96,6 +122,7 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
         photoCount: photos,
         activityType: _activityType,
         images: const [],
+  parentId: _selectedParentAreaId,
       );
       await TourPointsData.addTourPoint(point);
       if (mounted) {
@@ -129,6 +156,8 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
       decoration: InputDecoration(labelText: 'short_name'.tr()),
       validator: (v) => (v == null || v.trim().isEmpty) ? 'enter_name'.tr() : null,
             ),
+            const SizedBox(height: 12),
+            _buildParentAreaDropdown(),
             const SizedBox(height: 12),
             TextFormField(
               controller: _titleCtrl,
@@ -341,6 +370,33 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildParentAreaDropdown() {
+    if (_loadingAreas) {
+      return Row(
+        children: [
+          const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2)),
+          const SizedBox(width: 12),
+          Text('loading_areas'.tr()),
+        ],
+      );
+    }
+    if (_areas.isEmpty) {
+      return Text('no_areas_available'.tr(), style: Theme.of(context).textTheme.bodySmall);
+    }
+    return DropdownButtonFormField<String?> (
+      value: _selectedParentAreaId,
+      decoration: InputDecoration(labelText: 'link_to_area'.tr()),
+      items: [
+        DropdownMenuItem<String?>(value: null, child: Text('no_parent'.tr())),
+        ..._areas.map((a) => DropdownMenuItem<String?>(
+              value: a.id,
+              child: Text(a.name, overflow: TextOverflow.ellipsis),
+            )),
+      ],
+      onChanged: (v) => setState(() => _selectedParentAreaId = v),
     );
   }
 }

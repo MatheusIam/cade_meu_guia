@@ -1,3 +1,4 @@
+import 'edit_area_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -11,6 +12,7 @@ import 'tour_point_screen.dart';
 import '../providers/favorites_provider.dart';
 import 'settings_screen.dart';
 import 'add_tour_point_screen.dart';
+import 'add_area_screen.dart';
 import '../providers/ratings_provider.dart';
 
 /// Tela inicial com mapa principal e navegação
@@ -36,7 +38,8 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadTourPoints() {
-    _tourPoints = TourPointsData.getAllTourPoints();
+  // Carrega somente pontos principais (sem parentId) para não poluir o mapa com sub-pontos
+  _tourPoints = TourPointsData.getMainTourPoints();
     _filteredTourPoints = _tourPoints;
   }
 
@@ -808,18 +811,7 @@ class _HomeScreenState extends State<HomeScreen> {
             icon: const Icon(Icons.add_location_alt),
             tooltip: 'add_point'.tr(),
             onPressed: () async {
-              final result = await Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (_) => const AddTourPointScreen(),
-                ),
-              );
-              if (result != null) {
-                // Recarrega lista incluindo novo ponto
-                setState(() {
-                  _tourPoints = TourPointsData.getAllTourPoints();
-                  _applyFilters();
-                });
-              }
+              await _showCreationTypeDialog();
             },
           ),
           IconButton(
@@ -864,8 +856,84 @@ class _HomeScreenState extends State<HomeScreen> {
             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
             userAgentPackageName: 'dev.meuapp.guia_turistico',
           ),
+          PolygonLayer(
+            polygons: _filteredTourPoints
+                .where((p) => p.polygon != null && p.polygon!.length >= 3)
+                .map(
+                  (p) => Polygon(
+                    points: p.polygon!,
+                    color: Theme.of(context).colorScheme.primary.withOpacity(0.18),
+                    borderStrokeWidth: 3,
+                    borderColor: Theme.of(context).colorScheme.primary,
+                  ),
+                )
+                .toList(),
+          ),
           MarkerLayer(
-            markers: _filteredTourPoints.map((point) {
+            markers: _filteredTourPoints
+                .where((p) => p.polygon != null && p.polygon!.length >= 3)
+                .map((p) => Marker(
+                      point: p.centroid,
+                      width: 120,
+                      height: 40,
+                      child: GestureDetector(
+                        onTap: () => _onMarkerTapped(p),
+                        onLongPress: () async {
+                          final updated = await Navigator.of(context).push(
+                            MaterialPageRoute(
+                              builder: (_) => EditAreaScreen(area: p),
+                            ),
+                          );
+                          if (updated is TourPoint) {
+                            setState(() {
+                              _tourPoints = TourPointsData.getMainTourPoints();
+                              _applyFilters();
+                            });
+                          }
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).colorScheme.primary.withOpacity(0.85),
+                            borderRadius: BorderRadius.circular(20),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.25),
+                                blurRadius: 4,
+                                offset: const Offset(0,2),
+                              )
+                            ],
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Icon(Icons.place, size:14, color: Colors.white),
+                              const SizedBox(width:4),
+                              Flexible(
+                                child: Text(
+                                  p.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width:4),
+                              const Icon(Icons.edit, size:12, color: Colors.white70),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ))
+                .toList(),
+          ),
+          MarkerLayer(
+      markers: _filteredTourPoints
+        .where((point) => !(point.polygon != null && point.polygon!.length >= 3))
+        .map((point) {
               return Marker(
                 point: point.location,
                 width: 40.0,
@@ -947,6 +1015,51 @@ class _HomeScreenState extends State<HomeScreen> {
         child: const Icon(Icons.my_location),
       ),
     );
+  }
+
+  Future<void> _showCreationTypeDialog() async {
+    final choice = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('choose_creation_type'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'area'),
+            child: Text('create_area'.tr()),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, 'point'),
+            child: Text('create_point'.tr()),
+          ),
+        ],
+      ),
+    );
+    if (!mounted || choice == null) return;
+    if (choice == 'area') {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const AddAreaScreen(),
+        ),
+      );
+      if (result != null) {
+        setState(() {
+          _tourPoints = TourPointsData.getMainTourPoints();
+          _applyFilters();
+        });
+      }
+    } else if (choice == 'point') {
+      final result = await Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const AddTourPointScreen(),
+        ),
+      );
+      if (result != null) {
+        setState(() {
+          _tourPoints = TourPointsData.getAllTourPoints();
+          _applyFilters();
+        });
+      }
+    }
   }
 }
 

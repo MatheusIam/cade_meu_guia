@@ -338,6 +338,10 @@ class _TourPointScreenState extends State<TourPointScreen>
           _buildActionButtons(),
           const SizedBox(height: 24),
           _buildAdditionalInfo(),
+          const SizedBox(height: 24),
+          _buildDetailedInfoSection(),
+          const SizedBox(height: 24),
+          _buildChildPointsSection(),
         ],
       ),
     );
@@ -797,6 +801,103 @@ class _TourPointScreenState extends State<TourPointScreen>
           await ratingsProvider.addRating(rating);
         },
       ),
+    );
+  }
+
+  Widget _buildDetailedInfoSection() {
+    final hasAny = widget.tourPoint.history.isNotEmpty || widget.tourPoint.significance.isNotEmpty || widget.tourPoint.purpose.isNotEmpty;
+    if (!hasAny) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'more_about'.tr(),
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        if (widget.tourPoint.history.isNotEmpty)
+          Card(
+            child: ExpansionTile(
+              leading: const Icon(Icons.history_edu),
+              title: Text('history'.tr()),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(widget.tourPoint.history),
+                ),
+              ],
+            ),
+          ),
+        if (widget.tourPoint.significance.isNotEmpty)
+          Card(
+            child: ExpansionTile(
+              leading: const Icon(Icons.lightbulb_outline),
+              title: Text('significance'.tr()),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(widget.tourPoint.significance),
+                ),
+              ],
+            ),
+          ),
+        if (widget.tourPoint.purpose.isNotEmpty)
+          Card(
+            child: ExpansionTile(
+              leading: const Icon(Icons.flag_outlined),
+              title: Text('purpose'.tr()),
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Text(widget.tourPoint.purpose),
+                ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildChildPointsSection() {
+    final children = TourPointsData.getChildPoints(widget.tourPoint.id);
+    if (children.isEmpty) return const SizedBox.shrink();
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'points_in_this_area'.tr(),
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: children.length,
+          itemBuilder: (context, index) {
+            final child = children[index];
+            return Card(
+              margin: const EdgeInsets.only(bottom: 8),
+              child: ListTile(
+                leading: CircleAvatar(
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  child: const Icon(Icons.place_outlined, color: Colors.white),
+                ),
+                title: Text(child.name),
+                subtitle: Text(child.title),
+                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TourPointScreen(tourPoint: child),
+                    ),
+                  );
+                },
+              ),
+            );
+          },
+        ),
+      ],
     );
   }
 }

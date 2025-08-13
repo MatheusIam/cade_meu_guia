@@ -10,6 +10,15 @@ class TourPoint {
   final int photoCount;
   final String activityType;
   final List<String> images;
+  // Hierarquia
+  final String? parentId; // ponto pai (se este for um sub-ponto)
+  final List<String> childPointIds; // ids de sub-pontos desta área
+  // Informações detalhadas
+  final String history; // história do local
+  final String significance; // significado / relevância
+  final String purpose; // propósito / por que foi feito
+  // Polígono opcional para representar uma área (se for zona e não apenas ponto central)
+  final List<LatLng>? polygon; // mínimo de 3 pontos para ser válido
 
   const TourPoint({
     required this.id,
@@ -21,6 +30,12 @@ class TourPoint {
     required this.photoCount,
     required this.activityType,
     this.images = const [],
+  this.parentId,
+  this.childPointIds = const [],
+  this.history = '',
+  this.significance = '',
+  this.purpose = '',
+  this.polygon,
   });
 
   // Método para converter para Map (útil para serialização)
@@ -36,6 +51,14 @@ class TourPoint {
       'photoCount': photoCount,
       'activityType': activityType,
       'images': images,
+  'parentId': parentId,
+  'childPointIds': childPointIds,
+  'history': history,
+  'significance': significance,
+  'purpose': purpose,
+    'polygon': polygon
+      ?.map((p) => {'lat': p.latitude, 'lng': p.longitude})
+      .toList(),
     };
   }
 
@@ -54,6 +77,20 @@ class TourPoint {
       photoCount: map['photoCount']?.toInt() ?? 0,
       activityType: map['activityType'] ?? '',
       images: List<String>.from(map['images'] ?? []),
+  parentId: map['parentId'],
+  childPointIds: List<String>.from(map['childPointIds'] ?? []),
+  history: map['history'] ?? '',
+  significance: map['significance'] ?? '',
+  purpose: map['purpose'] ?? '',
+    polygon: (map['polygon'] is List)
+      ? (map['polygon'] as List)
+        .whereType<Map>()
+        .map((m) => LatLng(
+          (m['lat'] as num?)?.toDouble() ?? 0.0,
+          (m['lng'] as num?)?.toDouble() ?? 0.0,
+          ))
+        .toList()
+      : null,
     );
   }
 
@@ -68,6 +105,12 @@ class TourPoint {
     int? photoCount,
     String? activityType,
     List<String>? images,
+    String? parentId,
+    List<String>? childPointIds,
+    String? history,
+    String? significance,
+    String? purpose,
+  List<LatLng>? polygon,
   }) {
     return TourPoint(
       id: id ?? this.id,
@@ -79,6 +122,20 @@ class TourPoint {
       photoCount: photoCount ?? this.photoCount,
       activityType: activityType ?? this.activityType,
       images: images ?? this.images,
+      parentId: parentId ?? this.parentId,
+      childPointIds: childPointIds ?? this.childPointIds,
+      history: history ?? this.history,
+      significance: significance ?? this.significance,
+      purpose: purpose ?? this.purpose,
+    polygon: polygon ?? this.polygon,
     );
+  }
+
+  bool get isArea => (polygon != null && polygon!.length >= 3) || childPointIds.isNotEmpty;
+  LatLng get centroid {
+    if (polygon == null || polygon!.isEmpty) return location;
+    double x = 0, y = 0;
+    for (final p in polygon!) { x += p.latitude; y += p.longitude; }
+    return LatLng(x / polygon!.length, y / polygon!.length);
   }
 }

@@ -6,6 +6,7 @@ import '../models/tour_point.dart';
 /// Classe responsável por fornecer dados dos pontos turísticos
 class TourPointsData {
   static final List<TourPoint> _tourPoints = [
+    // Área principal com sub-pontos demonstrando hierarquia
     const TourPoint(
       id: '1',
       name: 'Orla Taumanã',
@@ -21,6 +22,49 @@ class TourPointsData {
         'assets/images/orla_taumana_2.jpg',
         'assets/images/orla_taumana_3.jpg',
       ],
+      childPointIds: ['101', '102'],
+      history: 'Inaugurada em 2004 como parte de um projeto de revitalização urbana às margens do Rio Branco.',
+      significance: 'Representa o encontro da população com o rio, sendo espaço de lazer, cultura e socialização.',
+      purpose: 'Valorizar a orla fluvial e fomentar o turismo sustentável local.',
+    ),
+    // Sub-ponto 1 da Orla Taumanã
+    const TourPoint(
+      id: '101',
+      parentId: '1',
+      name: 'Monumento aos Pioneiros',
+      title: 'Homenagem aos desbravadores',
+      description:
+          'Escultura que homenageia as famílias e trabalhadores que participaram da formação histórica da cidade.',
+      location: LatLng(2.8136, -60.6689),
+      rating: 4.3,
+      photoCount: 180,
+      activityType: 'Cultural',
+      images: [
+        'assets/images/memorial_pioneiros_1.jpg',
+        'assets/images/memorial_pioneiros_2.jpg',
+      ],
+      history: 'Criado por artistas locais para celebrar a memória dos primeiros colonizadores.',
+      significance: 'Simboliza coragem, resiliência e construção coletiva de Roraima.',
+      purpose: 'Manter viva a memória histórica e educar visitantes.',
+    ),
+    // Sub-ponto 2 da Orla Taumanã
+    const TourPoint(
+      id: '102',
+      parentId: '1',
+      name: 'Plataforma de Contemplação',
+      title: 'Vista para o Rio Branco',
+      description:
+          'Estrutura projetada para que visitantes apreciem o pôr do sol e a paisagem do Rio Branco.',
+      location: LatLng(2.8130, -60.6680),
+      rating: 4.8,
+      photoCount: 500,
+      activityType: 'Contemplação',
+      images: [
+        'assets/images/orla_taumana_1.jpg',
+      ],
+      history: 'Parte da segunda fase de melhorias na orla.',
+      significance: 'Ponto privilegiado de observação da natureza e da dinâmica urbana.',
+      purpose: 'Oferecer infraestrutura segura para observação e lazer.',
     ),
     const TourPoint(
       id: '2',
@@ -288,5 +332,25 @@ class TourPointsData {
         (a, b) => a.photoCount > b.photoCount ? a : b,
       ),
     };
+  }
+
+  /// Retorna os sub-pontos de uma área
+  static List<TourPoint> getChildPoints(String parentId) {
+    final parent = getTourPointById(parentId);
+    if (parent == null || parent.childPointIds.isEmpty) return [];
+    final ids = parent.childPointIds.toSet();
+    return getAllTourPoints().where((p) => ids.contains(p.id)).toList();
+  }
+
+  /// Retorna apenas pontos principais (sem parentId)
+  static List<TourPoint> getMainTourPoints() {
+    return getAllTourPoints().where((p) => p.parentId == null).toList();
+  }
+
+  /// Retorna o ponto pai (se houver)
+  static TourPoint? getParentPoint(String childId) {
+    final child = getTourPointById(childId);
+    if (child == null || child.parentId == null) return null;
+    return getTourPointById(child.parentId!);
   }
 }
