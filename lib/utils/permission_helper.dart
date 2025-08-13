@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -16,28 +17,28 @@ class PermissionHelper {
         context: context,
         barrierDismissible: false,
         builder: (ctx) => AlertDialog(
-          title: const Text('Permissão de Localização Precisa'),
-          content: const Column(
+      title: Text('permission_precise_title'.tr()),
+      content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Precisamos da sua localização precisa para:'),
+        Text('permission_precise_reason_title'.tr()),
               SizedBox(height: 8),
-              _Bullet(text: 'Centralizar o mapa na sua posição atual'),
-              _Bullet(text: 'Facilitar o cadastro correto do ponto turístico'),
-              _Bullet(text: 'Melhorar a precisão de busca por locais próximos'),
+        _Bullet(text: 'permission_precise_reason_point1'.tr()),
+        _Bullet(text: 'permission_precise_reason_point2'.tr()),
+        _Bullet(text: 'permission_precise_reason_point3'.tr()),
               SizedBox(height: 12),
-              Text('As coordenadas não são enviadas para servidores externos.'),
+        Text('permission_precise_privacy'.tr()),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
-              child: const Text('Cancelar'),
+        child: Text('cancel'.tr()),
             ),
             ElevatedButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: const Text('Permitir'),
+        child: Text('allow'.tr()),
             ),
           ],
         ),
@@ -71,15 +72,15 @@ class PermissionHelper {
         final insist = await showDialog<bool>(
           context: context,
           builder: (ctx) => AlertDialog(
-            title: const Text('Precisão insuficiente'),
-            content: const Text('Você concedeu apenas localização aproximada. Para usar os recursos de mapa corretamente, permita a localização precisa (exata). Deseja tentar novamente?'),
+            title: Text('insufficient_accuracy_title'.tr()),
+            content: Text('insufficient_accuracy_message'.tr()),
             actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-              TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Tentar novamente')),
+              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('cancel'.tr())),
+              TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('try_again'.tr())),
               TextButton(onPressed: () {
                 Geolocator.openAppSettings();
                 Navigator.pop(ctx, false);
-              }, child: const Text('Configurações')),
+              }, child: Text('settings'.tr())),
             ],
           ),
         );
@@ -103,7 +104,7 @@ class PermissionHelper {
 
   static void _showDeniedSnack(BuildContext context) {
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Permissão de localização negada. Ajuste nas configurações.')),
+  SnackBar(content: Text('location_permission_denied'.tr())),
     );
   }
 }

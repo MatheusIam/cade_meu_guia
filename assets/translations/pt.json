@@ -1,0 +1,200 @@
+{
+  "app_name": "Cadê Meu Guia",
+  "home_page": "Início",
+  "settings_page": "Configurações",
+  "change_language": "Mudar Idioma",
+  "welcome_title": "Bem-vindo ao Guia Turístico",
+  "preservation_tip": "Ajude a preservar nosso patrimônio.",
+  "appearance": "Aparência",
+  "light_theme": "Claro",
+  "dark_theme": "Escuro",
+  "system_theme": "Sistema",
+  "theme_colors": "Cores do tema",
+  "favorites": "Favoritos",
+  "total_favorites": "Total de favoritos",
+  "clear_all_favorites": "Limpar todos os favoritos",
+  "statistics": "Estatísticas",
+  "about_app": "Sobre o App",
+  "app_version": "Versão",
+  "focus": "Foco",
+  "focus_boa_vista": "Pontos turísticos de Boa Vista - RR",
+  "developed_with": "Desenvolvido com",
+  "tour_points_total": "Total de pontos turísticos",
+  "visited_points": "Pontos visitados (avaliados)",
+  "average_rating": "Avaliação média",
+  "total_photos": "Total de fotos",
+  "best_rated": "Melhor avaliado",
+  "clear_favorites_title": "Limpar Favoritos",
+  "clear_favorites_message": "Tem certeza que deseja remover todos os pontos turísticos dos favoritos?",
+  "cancel": "Cancelar",
+  "confirm": "Confirmar",
+  "all_favorites_removed": "Todos os favoritos foram removidos",
+  "map": "Mapa",
+  "explore": "Explorar",
+  "add_point": "Adicionar ponto",
+  "toggle_theme": "Alternar Tema",
+  "filter_by_category": "Filtrar por categoria",
+  "all": "Todos",
+  "hiking": "Caminhada",
+  "contemplation": "Contemplação",
+  "adventure": "Aventura",
+  "cultural": "Cultural",
+  "visited": "Visitados",
+  "favorite_points": "Pontos Favoritos",
+  "none_favorite_yet": "Nenhum favorito ainda",
+  "add_favorite_hint": "Toque no ícone de coração em um ponto para adicioná-lo aqui.",
+  "clear_all": "Limpar todos",
+  "removed_from_favorites": "removido dos favoritos",
+  "undo": "Desfazer",
+  "sustainable_tourism": "Turismo Sustentável",
+  "sustainable_tourism_desc": "Conheça nossas dicas essenciais para um turismo consciente e sustentável",
+  "see_all_tips": "Ver Todas as Dicas",
+  "together_preservation": "Juntos pela Preservação",
+  "together_preservation_desc": "Cada turista consciente contribui para a preservação dos nossos patrimônios naturais e culturais. Seja parte desta mudança!",
+  "tips": "Dicas",
+  "points": "Pontos",
+  "tourists": "Turistas",
+  "view_all_tips": "Ver Todas as Dicas",
+  "explore_points": "Explorar Pontos Turísticos",
+  "search_points_hint": "Buscar pontos turísticos...",
+  "clear": "Limpar",
+  "no_points_found": "Nenhum ponto turístico encontrado",
+  "try_adjust_filters": "Tente ajustar os filtros ou busca",
+  "center_on_map": "Centralizar no mapa",
+  "view_details": "Ver detalhes",
+  "remove_from_favorites": "Remover dos favoritos",
+  "add_to_favorites": "Adicionar aos favoritos",
+  "photos_count": "{count} fotos",
+  "center_map": "Centralizar mapa"
+  ,"save": "Salvar"
+  ,"saving": "Salvando..."
+  ,"delete": "Excluir"
+  ,"create": "Criar"
+  ,"edit": "Editar"
+  ,"new_point": "Novo Ponto"
+  ,"new_tour_point": "Novo Ponto Turístico"
+  ,"edit_point": "Editar Ponto"
+  ,"delete_point_title": "Excluir ponto"
+  ,"delete_point_question": "Tem certeza que deseja excluir este ponto?"
+  ,"delete_point": "Excluir"
+  ,"save_changes": "Salvar alterações"
+  ,"latitude": "Latitude"
+  ,"longitude": "Longitude"
+  ,"short_name": "Nome curto"
+  ,"title_label": "Título"
+  ,"description_label": "Descrição"
+  ,"select_location_on_map": "Selecione a localização no mapa"
+  ,"initial_rating": "Nota inicial"
+  ,"photos_quantity_hint": "Qtd. fotos (estimativa)"
+  ,"activity_type": "Tipo de atividade"
+  ,"permission_precise_title": "Permissão de Localização Precisa"
+  ,"permission_precise_reason_title": "Precisamos da sua localização precisa para:"
+  ,"permission_precise_reason_point1": "Centralizar o mapa na sua posição atual"
+  ,"permission_precise_reason_point2": "Facilitar o cadastro correto do ponto turístico"
+  ,"permission_precise_reason_point3": "Melhorar a precisão de busca por locais próximos"
+  ,"permission_precise_privacy": "As coordenadas não são enviadas para servidores externos."
+  ,"allow": "Permitir"
+  ,"settings": "Configurações"
+  ,"try_again": "Tentar novamente"
+  ,"insufficient_accuracy_title": "Precisão insuficiente"
+  ,"insufficient_accuracy_message": "Você concedeu apenas localização aproximada. Para usar os recursos de mapa corretamente, permita a localização precisa (exata). Tentar novamente?"
+  ,"location_permission_denied": "Permissão de localização negada. Ajuste nas configurações."
+  ,"tap_to_view_gallery": "Toque para ver galeria"
+  ,"no_images_available": "Nenhuma imagem disponível"
+  ,"opening_directions": "Abrindo direções..."
+  ,"share_location": "Localização compartilhada!"
+  ,"directions": "Direções"
+  ,"share": "Compartilhar"
+  ,"share_tips": "Compartilhar Dicas"
+  ,"report_issue": "Reportar Problema"
+  ,"report_problem_title": "Reportar Problema"
+  ,"report_problem_question": "Encontrou algum problema neste local?"
+  ,"problem_types": "Tipos de problemas:"
+  ,"problem_reported": "Problema reportado! Obrigado por ajudar na preservação."
+  ,"close": "Fechar"
+  ,"favorite": "Favoritar"
+  ,"favorited": "Adicionado aos favoritos"
+  ,"unfavorited": "Removido dos favoritos"
+  ,"added_to_favorites": "Adicionado aos favoritos"
+  ,"removed_from_favorites_msg": "Removido dos favoritos"
+  ,"nearby_none": "Nenhum ponto próximo encontrado"
+  ,"nearby_points": "Próximos"
+  ,"additional_info": "Informações Adicionais"
+  ,"rating": "Avaliação"
+  ,"photos_available": "Fotos disponíveis"
+  ,"activity": "Atividade"
+  ,"coordinates": "Coordenadas"
+  ,"preserve_how": "Como Preservar"
+  ,"preserve_subtitle_general": "Dicas de preservação e sustentabilidade"
+  ,"tips_for_activity": "Dicas para {activity}"
+  ,"no_tips_found": "Nenhuma dica encontrada para este filtro."
+  ,"environmental": "Ambiental"
+  ,"social": "Social"
+  ,"general": "Geral"
+  ,"see_all_tips_lower": "Ver todas as dicas"
+  ,"be_conscious_tourist": "Seja um Turista Consciente"
+  ,"conscious_tourism_positive": "Impacto Positivo do Turismo Consciente"
+  ,"preservation": "Preservação"
+  ,"heritage": "Patrimônio Cultural"
+  ,"local_economy": "Economia Local"
+  ,"report": "Reportar"
+  ,"view_tips": "Ver Dicas"
+  ,"visitado": "Visitado"
+  ,"rate_this_place": "Avaliar este Local"
+  ,"rating_updated_success": "Avaliação atualizada com sucesso!"
+  ,"rating_submitted_success": "Avaliação enviada com sucesso!"
+  ,"rating_submit_error": "Erro ao enviar avaliação. Tente novamente."
+  ,"edit_rating": "Editar Avaliação"
+  ,"rate_place": "Avaliar Local"
+  ,"overall_rating": "Avaliação Geral"
+  ,"overall_rating_desc": "Como foi sua experiência geral neste local?"
+  ,"accessibility": "Acessibilidade"
+  ,"accessibility_desc": "Facilidade de acesso e locomoção"
+  ,"cleanliness": "Limpeza"
+  ,"cleanliness_desc": "Estado de conservação e limpeza"
+  ,"infrastructure": "Infraestrutura"
+  ,"infrastructure_desc": "Qualidade das instalações"
+  ,"safety": "Segurança"
+  ,"safety_desc": "Sensação de segurança durante a visita"
+  ,"experience": "Experiência"
+  ,"experience_desc": "Qualidade da experiência e atividades oferecidas"
+  ,"recommend_question": "Você recomendaria este local?"
+  ,"update": "Atualizar"
+  ,"submit": "Enviar"
+  ,"rating_label_very_bad": "Muito Ruim"
+  ,"rating_label_bad": "Ruim"
+  ,"rating_label_regular": "Regular"
+  ,"rating_label_good": "Bom"
+  ,"rating_label_excellent": "Excelente"
+  ,"essential": "ESSENCIAL"
+  ,"important": "IMPORTANTE"
+  ,"recommended": "RECOMENDADO"
+  ,"general_cap": "GERAL"
+  ,"all_tips": "Todas"
+  ,"report_problem": "Reportar Problema"
+  ,"tour_point_added": "Ponto turístico adicionado"
+  ,"error_saving": "Erro ao salvar"
+  ,"enter_name": "Informe o nome"
+  ,"enter_title": "Informe o título"
+  ,"description_too_short": "Descrição muito curta"
+  ,"center_marker": "Centralizar marcador"
+  ,"invalid_number": "Inválida"
+  ,"app_name_label": "Nome do aplicativo"
+  ,"clear_favorites_question_short": "Tem certeza que deseja remover todos os favoritos?"
+  ,"preservation_guide": "Guia de Preservação"
+  ,"points_found": "{count} ponto(s) encontrado(s)"
+  ,"points_count_with_filters": "{count} ponto(s) - {filters}"
+  ,"details": "Detalhes"
+  ,"preserve": "Preservar"
+  ,"nearby": "Próximos"
+  ,"photos": "Fotos"
+  ,"ratings": "Avaliações"
+  ,"tour_points_statistics": "Estatísticas dos Pontos Turísticos"
+  ,"image_counter": "{index} de {total}"
+  ,"problem_list_litter": "Lixo acumulado"
+  ,"problem_list_damage": "Danos ao patrimônio"
+  ,"problem_list_vandalism": "Vandalismo"
+  ,"problem_list_access": "Problemas de acesso"
+  ,"problem_list_other": "Outros"
+  ,"preservation_tips_shared": "Dicas de preservação compartilhadas!"
+}

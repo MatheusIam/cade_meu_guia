@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../providers/favorites_provider.dart';
@@ -14,7 +15,7 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configurações'),
+        title: Text('settings_page'.tr()),
         // herda do AppBarTheme para contraste adequado
       ),
       body: ListView(
@@ -27,7 +28,47 @@ class SettingsScreen extends StatelessWidget {
           _buildStatisticsSection(context),
           const SizedBox(height: 24),
           _buildAboutSection(context),
+          const SizedBox(height: 24),
+          _buildLanguageSection(context),
         ],
+      ),
+    );
+  }
+
+  Widget _buildLanguageSection(BuildContext context) {
+    final current = context.locale.languageCode;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.language, color: Theme.of(context).colorScheme.primary),
+                const SizedBox(width: 12),
+                Text('change_language'.tr(), style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            const SizedBox(height: 16),
+            RadioListTile<String>(
+              title: const Text('English'),
+              value: 'en',
+              groupValue: current,
+              onChanged: (val) {
+                if (val != null) context.setLocale(const Locale('en'));
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('Português'),
+              value: 'pt',
+              groupValue: current,
+              onChanged: (val) {
+                if (val != null) context.setLocale(const Locale('pt'));
+              },
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -47,7 +88,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Aparência',
+                  'appearance'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -60,8 +101,8 @@ class SettingsScreen extends StatelessWidget {
                 return Column(
                   children: [
                     RadioListTile<ThemeMode>(
-                      title: const Text('Claro'),
-                      subtitle: const Text('Sempre usar tema claro'),
+                      title: Text('light_theme'.tr()),
+                      subtitle: const Text(''),
                       value: ThemeMode.light,
                       groupValue: themeProvider.themeMode,
                       onChanged: (value) {
@@ -71,8 +112,8 @@ class SettingsScreen extends StatelessWidget {
                       },
                     ),
                     RadioListTile<ThemeMode>(
-                      title: const Text('Escuro'),
-                      subtitle: const Text('Sempre usar tema escuro'),
+                      title: Text('dark_theme'.tr()),
+                      subtitle: const Text(''),
                       value: ThemeMode.dark,
                       groupValue: themeProvider.themeMode,
                       onChanged: (value) {
@@ -82,8 +123,8 @@ class SettingsScreen extends StatelessWidget {
                       },
                     ),
                     RadioListTile<ThemeMode>(
-                      title: const Text('Sistema'),
-                      subtitle: const Text('Seguir configuração do sistema'),
+                      title: Text('system_theme'.tr()),
+                      subtitle: const Text(''),
                       value: ThemeMode.system,
                       groupValue: themeProvider.themeMode,
                       onChanged: (value) {
@@ -96,7 +137,7 @@ class SettingsScreen extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Text(
-                        'Cores do tema',
+                        'theme_colors'.tr(),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -130,7 +171,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Favoritos',
+                    'favorites'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -144,7 +185,7 @@ class SettingsScreen extends StatelessWidget {
                   children: [
                     ListTile(
                       leading: const Icon(Icons.favorite_border),
-                      title: const Text('Total de favoritos'),
+                      title: Text('total_favorites'.tr()),
                       trailing: Text(
                         favoritesProvider.favoritesCount.toString(),
                         style: Theme.of(context).textTheme.titleMedium?.copyWith(
@@ -156,7 +197,7 @@ class SettingsScreen extends StatelessWidget {
                     if (favoritesProvider.favoritesCount > 0)
                       ListTile(
                         leading: const Icon(Icons.clear_all),
-                        title: const Text('Limpar todos os favoritos'),
+                        title: Text('clear_all_favorites'.tr()),
                         onTap: () => _showClearFavoritesDialog(context),
                       ),
                   ],
@@ -187,7 +228,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Estatísticas',
+                    'statistics'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -198,35 +239,35 @@ class SettingsScreen extends StatelessWidget {
             _buildStatItem(
               context,
               Icons.location_on,
-              'Total de pontos turísticos',
+              'tour_points_total'.tr(),
               stats['totalPoints'].toString(),
             ),
             const Divider(),
             _buildStatItem(
               context,
               Icons.check_circle,
-              'Pontos visitados (avaliados)',
+              'visited_points'.tr(),
               ratingsProvider.visitedCount.toString(),
             ),
             const Divider(),
             _buildStatItem(
               context,
               Icons.star,
-              'Avaliação média',
+              'average_rating'.tr(),
               '${stats['averageRating']}/5.0',
             ),
             const Divider(),
             _buildStatItem(
               context,
               Icons.photo_library,
-              'Total de fotos',
+              'total_photos'.tr(),
               stats['totalPhotos'].toString(),
             ),
             const Divider(),
             _buildStatItem(
               context,
               Icons.thumb_up,
-              'Melhor avaliado',
+              'best_rated'.tr(),
               stats['highestRated'].name,
             ),
           ],
@@ -250,7 +291,7 @@ class SettingsScreen extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
                 Text(
-                  'Sobre o App',
+                    'about_app'.tr(),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -260,22 +301,22 @@ class SettingsScreen extends StatelessWidget {
             const SizedBox(height: 16),
             ListTile(
               leading: const Icon(Icons.apps),
-              title: const Text('Nome do aplicativo'),
+              title: Text('app_name_label'.tr()),
               subtitle: Text(AppConstants.appName),
             ),
             ListTile(
               leading: const Icon(Icons.numbers),
-              title: const Text('Versão'),
+              title: Text('app_version'.tr()),
               subtitle: Text(AppConstants.appVersion),
             ),
             ListTile(
               leading: const Icon(Icons.location_city),
-              title: const Text('Foco'),
+              title: Text('focus'.tr()),
               subtitle: const Text('Pontos turísticos de Boa Vista - RR'),
             ),
             ListTile(
               leading: const Icon(Icons.code),
-              title: const Text('Desenvolvido com'),
+              title: Text('developed_with'.tr()),
               subtitle: const Text('Flutter & Dart'),
             ),
           ],
@@ -307,28 +348,28 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Limpar Favoritos'),
-        content: const Text(
-          'Tem certeza que deseja remover todos os pontos turísticos dos favoritos?',
-        ),
+            title: Text('clear_favorites_title'.tr()),
+            content: Text(
+              'clear_favorites_message'.tr(),
+            ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+                child: Text('cancel'.tr()),
           ),
           TextButton(
             onPressed: () {
               Provider.of<FavoritesProvider>(context, listen: false)
                   .clearAllFavorites();
               Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Todos os favoritos foram removidos'),
-                  duration: Duration(seconds: 2),
-                ),
-              );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text('all_favorites_removed'.tr()),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
             },
-            child: const Text('Confirmar'),
+                child: Text('confirm'.tr()),
           ),
         ],
       ),

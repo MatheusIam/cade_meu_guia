@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../models/tour_point.dart';
 import '../models/tour_point_rating.dart';
 
@@ -89,8 +90,8 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
           SnackBar(
             content: Text(
               widget.existingRating != null 
-                  ? 'Avaliação atualizada com sucesso!' 
-                  : 'Avaliação enviada com sucesso!'
+                  ? 'rating_updated_success'.tr() 
+                  : 'rating_submitted_success'.tr()
             ),
             backgroundColor: Theme.of(context).colorScheme.primary,
           ),
@@ -99,8 +100,8 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erro ao enviar avaliação. Tente novamente.'),
+          SnackBar(
+            content: Text('rating_submit_error'.tr()),
             backgroundColor: Colors.red,
           ),
         );
@@ -144,9 +145,9 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          widget.existingRating != null 
-                              ? 'Editar Avaliação' 
-                              : 'Avaliar Local',
+              widget.existingRating != null 
+                ? 'edit_rating'.tr() 
+                : 'rate_place'.tr(),
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Theme.of(context).colorScheme.onPrimary,
                             fontWeight: FontWeight.bold,
@@ -184,57 +185,57 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
                     children: [
                       // Avaliação Geral
                       _buildRatingSection(
-                        'Avaliação Geral',
+                        'overall_rating'.tr(),
                         Icons.star,
                         _overallRating,
                         (value) => setState(() => _overallRating = value),
-                        'Como foi sua experiência geral neste local?',
+                        'overall_rating_desc'.tr(),
                       ),
                       const SizedBox(height: 20),
                       
                       // Categorias específicas
                       _buildRatingSection(
-                        'Acessibilidade',
+                        'accessibility'.tr(),
                         Icons.accessible,
                         _accessibilityRating,
                         (value) => setState(() => _accessibilityRating = value),
-                        'Facilidade de acesso e locomoção no local',
+                        'accessibility_desc'.tr(),
                       ),
                       const SizedBox(height: 16),
                       
                       _buildRatingSection(
-                        'Limpeza',
+                        'cleanliness'.tr(),
                         Icons.cleaning_services,
                         _cleanlinessRating,
                         (value) => setState(() => _cleanlinessRating = value),
-                        'Estado de conservação e limpeza do local',
+                        'cleanliness_desc'.tr(),
                       ),
                       const SizedBox(height: 16),
                       
                       _buildRatingSection(
-                        'Infraestrutura',
+                        'infrastructure'.tr(),
                         Icons.foundation,
                         _infrastructureRating,
                         (value) => setState(() => _infrastructureRating = value),
-                        'Qualidade das instalações e facilidades',
+                        'infrastructure_desc'.tr(),
                       ),
                       const SizedBox(height: 16),
                       
                       _buildRatingSection(
-                        'Segurança',
+                        'safety'.tr(),
                         Icons.security,
                         _safetyRating,
                         (value) => setState(() => _safetyRating = value),
-                        'Sensação de segurança durante a visita',
+                        'safety_desc'.tr(),
                       ),
                       const SizedBox(height: 16),
                       
                       _buildRatingSection(
-                        'Experiência',
+                        'experience'.tr(),
                         Icons.mood,
                         _experienceRating,
                         (value) => setState(() => _experienceRating = value),
-                        'Qualidade da experiência e atividades oferecidas',
+                        'experience_desc'.tr(),
                       ),
                       const SizedBox(height: 24),
                       
@@ -254,7 +255,7 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
                             const SizedBox(width: 12),
                             Expanded(
                               child: Text(
-                                'Você recomendaria este local?',
+                                'recommend_question'.tr(),
                                 style: Theme.of(context).textTheme.titleMedium,
                               ),
                             ),
@@ -286,7 +287,7 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
                   Expanded(
                     child: OutlinedButton(
                       onPressed: _isSubmitting ? null : () => Navigator.of(context).pop(),
-                      child: const Text('Cancelar'),
+                      child: Text('cancel'.tr()),
                     ),
                   ),
                   const SizedBox(width: 16),
@@ -299,7 +300,7 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
                               height: 20,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             )
-                          : Text(widget.existingRating != null ? 'Atualizar' : 'Enviar'),
+                          : Text(widget.existingRating != null ? 'update'.tr() : 'submit'.tr()),
                     ),
                   ),
                 ],
@@ -381,11 +382,11 @@ class _RatingFormDialogState extends State<RatingFormDialog> {
   }
 
   String _getRatingLabel(double rating) {
-    if (rating <= 1.5) return 'Muito Ruim';
-    if (rating <= 2.5) return 'Ruim';
-    if (rating <= 3.5) return 'Regular';
-    if (rating <= 4.5) return 'Bom';
-    return 'Excelente';
+  if (rating <= 1.5) return 'rating_label_very_bad'.tr();
+  if (rating <= 2.5) return 'rating_label_bad'.tr();
+  if (rating <= 3.5) return 'rating_label_regular'.tr();
+  if (rating <= 4.5) return 'rating_label_good'.tr();
+  return 'rating_label_excellent'.tr();
   }
 
   Color _getRatingColor(double rating) {

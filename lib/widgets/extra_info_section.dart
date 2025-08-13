@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'info_item.dart';
 
 class ExtraInfoSection extends StatelessWidget {
@@ -15,23 +16,7 @@ class ExtraInfoSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    IconData activityIcon;
-    switch (activityType) {
-      case 'Caminhada':
-        activityIcon = Icons.directions_walk;
-        break;
-      case 'Contemplação':
-        activityIcon = Icons.visibility;
-        break;
-      case 'Aventura':
-        activityIcon = Icons.landscape;
-        break;
-      case 'Cultural':
-        activityIcon = Icons.museum;
-        break;
-      default:
-        activityIcon = Icons.place;
-    }
+    final activityIcon = _iconForActivity(activityType);
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -41,21 +26,58 @@ class ExtraInfoSection extends StatelessWidget {
             InfoItem(
               icon: Icons.star_rate,
               value: rating,
-              label: 'Avaliações',
+              label: 'rating'.tr(),
             ),
             InfoItem(
               icon: Icons.photo_library,
               value: photoCount,
-              label: 'Fotos',
+              label: 'photos'.tr(),
             ),
             InfoItem(
               icon: activityIcon,
-              value: activityType,
-              label: 'Atividade',
+              value: _translateActivity(activityType),
+              label: 'activity'.tr(),
             ),
           ],
         ),
       ),
     );
+  }
+
+  IconData _iconForActivity(String value) {
+    switch (value) {
+      case 'Caminhada':
+      case 'hiking':
+        return Icons.directions_walk;
+      case 'Contemplação':
+      case 'contemplation':
+        return Icons.visibility;
+      case 'Aventura':
+      case 'adventure':
+        return Icons.landscape;
+      case 'Cultural':
+      case 'cultural':
+        return Icons.museum;
+      default:
+        return Icons.place;
+    }
+  }
+
+  String _translateActivity(String value) {
+    switch (value) {
+      case 'Caminhada':
+      case 'hiking':
+        return 'hiking'.tr();
+      case 'Contemplação':
+      case 'contemplation':
+        return 'contemplation'.tr();
+      case 'Aventura':
+      case 'adventure':
+        return 'adventure'.tr();
+      case 'Cultural':
+      case 'cultural':
+        return 'cultural'.tr();
+    }
+    return value;
   }
 }

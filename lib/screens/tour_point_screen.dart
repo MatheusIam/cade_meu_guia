@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -50,8 +51,8 @@ class _TourPointScreenState extends State<TourPointScreen>
         SnackBar(
           content: Text(
             favoritesProvider.isFavorite(widget.tourPoint.id)
-                ? 'Adicionado aos favoritos' 
-                : 'Removido dos favoritos'
+                ? 'added_to_favorites'.tr() 
+                : 'removed_from_favorites_msg'.tr()
           ),
           duration: const Duration(seconds: 2),
           action: SnackBarAction(
@@ -67,8 +68,8 @@ class _TourPointScreenState extends State<TourPointScreen>
     HapticFeedback.selectionClick();
     // Implementar funcionalidade de compartilhamento
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Localização compartilhada!'),
+      SnackBar(
+        content: Text('share_location'.tr()),
         duration: Duration(seconds: 2),
       ),
     );
@@ -78,8 +79,8 @@ class _TourPointScreenState extends State<TourPointScreen>
     HapticFeedback.selectionClick();
     // Implementar abertura de direções no app de mapas
     ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Abrindo direções...'),
+      SnackBar(
+        content: Text('opening_directions'.tr()),
         duration: Duration(seconds: 2),
       ),
     );
@@ -88,8 +89,8 @@ class _TourPointScreenState extends State<TourPointScreen>
   void _showImageGallery() {
     if (widget.tourPoint.images.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Nenhuma imagem disponível'),
+        SnackBar(
+          content: Text('no_images_available'.tr()),
           duration: Duration(seconds: 2),
         ),
       );
@@ -142,12 +143,12 @@ class _TourPointScreenState extends State<TourPointScreen>
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      '${_currentImageIndex + 1} de ${widget.tourPoint.images.length}',
+                      'image_counter'.tr(namedArgs:{'index': (_currentImageIndex + 1).toString(), 'total': widget.tourPoint.images.length.toString()}),
                       style: Theme.of(context).textTheme.bodyMedium,
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context),
-                      child: const Text('Fechar'),
+                      child: Text('close'.tr()),
                     ),
                   ],
                 ),
@@ -201,25 +202,23 @@ class _TourPointScreenState extends State<TourPointScreen>
                       ),
                     ),
                     child: widget.tourPoint.images.isNotEmpty
-                        ? const Center(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(
-                                  Icons.image,
-                                  size: 60,
+                        ? Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.image,
+                                size: 60,
+                                color: Colors.white,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'tap_to_view_gallery'.tr(),
+                                style: const TextStyle(
                                   color: Colors.white,
+                                  fontSize: 16,
                                 ),
-                                SizedBox(height: 8),
-                                Text(
-                                  'Toque para ver galeria',
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 16,
-                                  ),
-                                ),
-                              ],
-                            ),
+                              ),
+                            ],
                           )
                         : const Center(
                             child: Icon(
@@ -241,19 +240,19 @@ class _TourPointScreenState extends State<TourPointScreen>
                         color: isFavorite ? Colors.red : null,
                       ),
                       onPressed: _toggleFavorite,
-                      tooltip: 'Favoritar',
+                      tooltip: 'favorite'.tr(),
                     );
                   },
                 ),
                 IconButton(
                   icon: const Icon(Icons.share),
                   onPressed: _shareLocation,
-                  tooltip: 'Compartilhar',
+                  tooltip: 'share'.tr(),
                 ),
                 if (TourPointsData.isCustomPoint(widget.tourPoint.id))
                   IconButton(
                     icon: const Icon(Icons.edit_location_alt),
-                    tooltip: 'Editar ponto',
+                    tooltip: 'edit_point'.tr(),
                     onPressed: () async {
                       final updated = await Navigator.of(context).push(
                         MaterialPageRoute(
@@ -279,11 +278,11 @@ class _TourPointScreenState extends State<TourPointScreen>
               controller: _tabController,
               isScrollable: false,
               labelPadding: const EdgeInsets.symmetric(horizontal: 8),
-              tabs: const [
-                Tab(icon: Icon(Icons.info), text: 'Detalhes'),
-                Tab(icon: Icon(Icons.map), text: 'Mapa'),
-                Tab(icon: Icon(Icons.eco), text: 'Preservar'),
-                Tab(icon: Icon(Icons.explore), text: 'Próximos'),
+              tabs: [
+                Tab(icon: const Icon(Icons.info), text: 'details'.tr()),
+                Tab(icon: const Icon(Icons.map), text: 'map'.tr()),
+                Tab(icon: const Icon(Icons.eco), text: 'preserve'.tr()),
+                Tab(icon: const Icon(Icons.explore), text: 'nearby'.tr()),
               ],
             ),
             Expanded(
@@ -322,7 +321,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                 alignment: Alignment.centerLeft,
                 child: Chip(
                   avatar: const Icon(Icons.check_circle, color: Colors.white, size: 18),
-                  label: const Text('Visitado'),
+                  label: Text('visitado'.tr()),
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   labelStyle: TextStyle(color: Theme.of(context).colorScheme.onPrimary, fontWeight: FontWeight.bold),
                 ),
@@ -380,7 +379,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                       ),
                       const SizedBox(width: 12),
                       Text(
-                        'Seja um Turista Consciente',
+                        'be_conscious_tourist'.tr(),
                         style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
@@ -389,7 +388,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'O turismo sustentável é responsabilidade de todos. Ao visitar ${widget.tourPoint.name}, você está contribuindo para a preservação deste patrimônio para as futuras gerações.',
+                    'preservation'.tr() + ' - ' + widget.tourPoint.name,
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
@@ -401,7 +400,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                         child: ElevatedButton.icon(
                           onPressed: () => _showReportDialog(),
                           icon: const Icon(Icons.report_problem),
-                          label: const Text('Reportar Problema'),
+                          label: Text('report_problem'.tr()),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: Colors.orange,
                             foregroundColor: Colors.white,
@@ -413,7 +412,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                         child: ElevatedButton.icon(
                           onPressed: () => _sharePreservationTips(),
                           icon: const Icon(Icons.share),
-                          label: const Text('Compartilhar Dicas'),
+                          label: Text('share_tips'.tr()),
                         ),
                       ),
                     ],
@@ -431,15 +430,15 @@ class _TourPointScreenState extends State<TourPointScreen>
     final nearbyPoints = _getNearbyPoints();
     
     return nearbyPoints.isEmpty
-        ? const Center(
+        ? Center(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(Icons.location_off, size: 64, color: Colors.grey),
-                SizedBox(height: 16),
+                const Icon(Icons.location_off, size: 64, color: Colors.grey),
+                const SizedBox(height: 16),
                 Text(
-                  'Nenhum ponto próximo encontrado',
-                  style: TextStyle(color: Colors.grey, fontSize: 16),
+                  'nearby_none'.tr(),
+                  style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
               ],
             ),
@@ -518,7 +517,7 @@ class _TourPointScreenState extends State<TourPointScreen>
               child: ElevatedButton.icon(
                 onPressed: _openDirections,
                 icon: const Icon(Icons.directions),
-                label: const Text('Direções'),
+                label: Text('directions'.tr()),
               ),
             ),
             const SizedBox(width: 12),
@@ -526,7 +525,7 @@ class _TourPointScreenState extends State<TourPointScreen>
               child: ElevatedButton.icon(
                 onPressed: _shareLocation,
                 icon: const Icon(Icons.share),
-                label: const Text('Compartilhar'),
+                label: Text('share'.tr()),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Theme.of(context).colorScheme.secondary,
                   foregroundColor: Theme.of(context).colorScheme.onSecondary,
@@ -539,7 +538,7 @@ class _TourPointScreenState extends State<TourPointScreen>
         ElevatedButton.icon(
           onPressed: _showRatingDialog,
           icon: const Icon(Icons.star_rate),
-          label: const Text('Avaliar este Local'),
+          label: Text('rate_this_place'.tr()),
           style: ElevatedButton.styleFrom(
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             foregroundColor: Theme.of(context).colorScheme.onPrimaryContainer,
@@ -554,7 +553,7 @@ class _TourPointScreenState extends State<TourPointScreen>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Informações Adicionais',
+          'additional_info'.tr(),
           style: Theme.of(context).textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.bold,
           ),
@@ -567,7 +566,7 @@ class _TourPointScreenState extends State<TourPointScreen>
               children: [
                 _buildInfoRow(
                   Icons.star,
-                  'Avaliação',
+                  'rating'.tr(),
                   '${widget.tourPoint.rating}/5.0',
                   onTap: _showRatingDialog,
                   tappable: true,
@@ -575,19 +574,19 @@ class _TourPointScreenState extends State<TourPointScreen>
                 const Divider(),
                 _buildInfoRow(
                   Icons.photo_library,
-                  'Fotos disponíveis',
+                  'photos_available'.tr(),
                   widget.tourPoint.photoCount.toString(),
                 ),
                 const Divider(),
                 _buildInfoRow(
                   Icons.category,
-                  'Tipo de atividade',
+                  'activity_type'.tr(),
                   widget.tourPoint.activityType,
                 ),
                 const Divider(),
                 _buildInfoRow(
                   Icons.location_on,
-                  'Coordenadas',
+                  'coordinates'.tr(),
                   '${widget.tourPoint.location.latitude.toStringAsFixed(4)}, ${widget.tourPoint.location.longitude.toStringAsFixed(4)}',
                 ),
               ],
@@ -670,7 +669,7 @@ class _TourPointScreenState extends State<TourPointScreen>
       child: Column(
         children: [
           Text(
-            'Impacto Positivo do Turismo Consciente',
+            'conscious_tourism_positive'.tr(),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
@@ -679,9 +678,9 @@ class _TourPointScreenState extends State<TourPointScreen>
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
-              _buildStatItem('🌱', 'Preservação', 'Ambiental'),
-              _buildStatItem('🏛️', 'Patrimônio', 'Cultural'),
-              _buildStatItem('🤝', 'Economia', 'Local'),
+              _buildStatItem('🌱', 'preservation'.tr(), 'environmental'.tr()),
+              _buildStatItem('🏛️', 'heritage'.tr(), 'cultural'.tr()),
+              _buildStatItem('🤝', 'local_economy'.tr(), 'social'.tr()),
             ],
           ),
         ],
@@ -714,11 +713,11 @@ class _TourPointScreenState extends State<TourPointScreen>
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Row(
+        title: Row(
           children: [
-            Icon(Icons.report_problem, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('Reportar Problema'),
+            const Icon(Icons.report_problem, color: Colors.orange),
+            const SizedBox(width: 8),
+            Text('report_problem'.tr()),
           ],
         ),
         content: Column(
@@ -726,16 +725,16 @@ class _TourPointScreenState extends State<TourPointScreen>
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Encontrou algum problema neste local?',
+              'report_problem_question'.tr(),
               style: Theme.of(context).textTheme.bodyMedium,
             ),
             const SizedBox(height: 16),
-            const Text('Tipos de problemas:'),
+            Text('problem_types'.tr()),
             const SizedBox(height: 8),
-            ...['Lixo acumulado', 'Danos ao patrimônio', 'Vandalismo', 'Problemas de acesso', 'Outros']
-                .map((problem) => ListTile(
-                      leading: const Icon(Icons.circle, size: 8),
-                      title: Text(problem),
+      ...['problem_list_litter'.tr(), 'problem_list_damage'.tr(), 'problem_list_vandalism'.tr(), 'problem_list_access'.tr(), 'problem_list_other'.tr()]
+        .map((problem) => ListTile(
+            leading: const Icon(Icons.circle, size: 8),
+            title: Text(problem),
                       dense: true,
                       contentPadding: EdgeInsets.zero,
                     )),
@@ -744,19 +743,19 @@ class _TourPointScreenState extends State<TourPointScreen>
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Cancelar'),
+            child: Text('cancel'.tr()),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Problema reportado! Obrigado por ajudar na preservação.'),
+                SnackBar(
+                  content: Text('problem_reported'.tr()),
                   duration: Duration(seconds: 3),
                 ),
               );
             },
-            child: const Text('Reportar'),
+            child: Text('report'.tr()),
           ),
         ],
       ),
@@ -767,10 +766,10 @@ class _TourPointScreenState extends State<TourPointScreen>
     HapticFeedback.selectionClick();
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
-        content: const Text('Dicas de preservação compartilhadas!'),
+        content: Text('preservation_tips_shared'.tr()),
         duration: const Duration(seconds: 2),
         action: SnackBarAction(
-          label: 'Ver Dicas',
+          label: 'view_tips'.tr(),
           onPressed: () {
             // Navegar para aba de preservação se não estiver nela
             if (_tabController.index != 2) {

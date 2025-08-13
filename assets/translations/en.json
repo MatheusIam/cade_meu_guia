@@ -1,0 +1,200 @@
+{
+  "app_name": "Where's My Guide",
+  "home_page": "Home",
+  "settings_page": "Settings",
+  "change_language": "Change Language",
+  "welcome_title": "Welcome to the Tourist Guide",
+  "preservation_tip": "Help preserve our heritage.",
+  "appearance": "Appearance",
+  "light_theme": "Light",
+  "dark_theme": "Dark",
+  "system_theme": "System",
+  "theme_colors": "Theme colors",
+  "favorites": "Favorites",
+  "total_favorites": "Total favorites",
+  "clear_all_favorites": "Clear all favorites",
+  "statistics": "Statistics",
+  "about_app": "About the App",
+  "app_version": "Version",
+  "focus": "Focus",
+  "focus_boa_vista": "Tourist spots of Boa Vista - RR",
+  "developed_with": "Developed with",
+  "tour_points_total": "Total tourist points",
+  "visited_points": "Visited (rated) points",
+  "average_rating": "Average rating",
+  "total_photos": "Total photos",
+  "best_rated": "Best rated",
+  "clear_favorites_title": "Clear Favorites",
+  "clear_favorites_message": "Are you sure you want to remove all tourist spots from favorites?",
+  "cancel": "Cancel",
+  "confirm": "Confirm",
+  "all_favorites_removed": "All favorites were removed",
+  "map": "Map",
+  "explore": "Explore",
+  "add_point": "Add point",
+  "toggle_theme": "Toggle Theme",
+  "filter_by_category": "Filter by category",
+  "all": "All",
+  "hiking": "Hiking",
+  "contemplation": "Contemplation",
+  "adventure": "Adventure",
+  "cultural": "Cultural",
+  "visited": "Visited",
+  "favorite_points": "Favorite Points",
+  "none_favorite_yet": "No favorites yet",
+  "add_favorite_hint": "Tap the heart icon on a point to add it here.",
+  "clear_all": "Clear all",
+  "removed_from_favorites": "removed from favorites",
+  "undo": "Undo",
+  "sustainable_tourism": "Sustainable Tourism",
+  "sustainable_tourism_desc": "Discover our essential tips for conscious and sustainable tourism",
+  "see_all_tips": "See All Tips",
+  "together_preservation": "Together for Preservation",
+  "together_preservation_desc": "Each conscious tourist contributes to the preservation of our natural and cultural heritage. Be part of this change!",
+  "tips": "Tips",
+  "points": "Points",
+  "tourists": "Tourists",
+  "view_all_tips": "View All Tips",
+  "explore_points": "Explore Tourist Points",
+  "search_points_hint": "Search tourist points...",
+  "clear": "Clear",
+  "no_points_found": "No tourist points found",
+  "try_adjust_filters": "Try adjusting filters or search",
+  "center_on_map": "Center on map",
+  "view_details": "View details",
+  "remove_from_favorites": "Remove from favorites",
+  "add_to_favorites": "Add to favorites",
+  "photos_count": "{count} photos",
+  "center_map": "Center map"
+  ,"save": "Save"
+  ,"saving": "Saving..."
+  ,"delete": "Delete"
+  ,"create": "Create"
+  ,"edit": "Edit"
+  ,"new_point": "New Point"
+  ,"new_tour_point": "New Tourist Point"
+  ,"edit_point": "Edit Point"
+  ,"delete_point_title": "Delete point"
+  ,"delete_point_question": "Are you sure you want to delete this point?"
+  ,"delete_point": "Delete"
+  ,"save_changes": "Save changes"
+  ,"latitude": "Latitude"
+  ,"longitude": "Longitude"
+  ,"short_name": "Short name"
+  ,"title_label": "Title"
+  ,"description_label": "Description"
+  ,"select_location_on_map": "Select the location on the map"
+  ,"initial_rating": "Initial rating"
+  ,"photos_quantity_hint": "Photos qty (estimate)"
+  ,"activity_type": "Activity type"
+  ,"permission_precise_title": "Precise Location Permission"
+  ,"permission_precise_reason_title": "We need your precise location to:"
+  ,"permission_precise_reason_point1": "Center the map on your current position"
+  ,"permission_precise_reason_point2": "Help register the tourist point correctly"
+  ,"permission_precise_reason_point3": "Improve the accuracy of nearby searches"
+  ,"permission_precise_privacy": "Coordinates are not sent to external servers."
+  ,"allow": "Allow"
+  ,"settings": "Settings"
+  ,"try_again": "Try again"
+  ,"insufficient_accuracy_title": "Insufficient precision"
+  ,"insufficient_accuracy_message": "You granted only approximate location. To use map features correctly, allow precise (exact) location. Try again?"
+  ,"location_permission_denied": "Location permission denied. Adjust in settings."
+  ,"tap_to_view_gallery": "Tap to view gallery"
+  ,"no_images_available": "No images available"
+  ,"opening_directions": "Opening directions..."
+  ,"share_location": "Location shared!"
+  ,"directions": "Directions"
+  ,"share": "Share"
+  ,"share_tips": "Share Tips"
+  ,"report_issue": "Report Issue"
+  ,"report_problem_title": "Report Problem"
+  ,"report_problem_question": "Found any problem at this place?"
+  ,"problem_types": "Problem types:"
+  ,"problem_reported": "Problem reported! Thanks for helping preservation."
+  ,"close": "Close"
+  ,"favorite": "Favorite"
+  ,"favorited": "Added to favorites"
+  ,"unfavorited": "Removed from favorites"
+  ,"added_to_favorites": "Added to favorites"
+  ,"removed_from_favorites_msg": "Removed from favorites"
+  ,"nearby_none": "No nearby points found"
+  ,"nearby_points": "Nearby"
+  ,"additional_info": "Additional Information"
+  ,"rating": "Rating"
+  ,"photos_available": "Photos available"
+  ,"activity": "Activity"
+  ,"coordinates": "Coordinates"
+  ,"preserve_how": "How to Preserve"
+  ,"preserve_subtitle_general": "Preservation and sustainability tips"
+  ,"tips_for_activity": "Tips for {activity}"
+  ,"no_tips_found": "No tips found for this filter."
+  ,"environmental": "Environmental"
+  ,"social": "Social"
+  ,"general": "General"
+  ,"see_all_tips_lower": "See all tips"
+  ,"be_conscious_tourist": "Be a Conscious Tourist"
+  ,"conscious_tourism_positive": "Positive Impact of Conscious Tourism"
+  ,"preservation": "Preservation"
+  ,"heritage": "Cultural Heritage"
+  ,"local_economy": "Local Economy"
+  ,"report": "Report"
+  ,"view_tips": "View Tips"
+  ,"visitado": "Visited"
+  ,"rate_this_place": "Rate this Place"
+  ,"rating_updated_success": "Rating updated successfully!"
+  ,"rating_submitted_success": "Rating submitted successfully!"
+  ,"rating_submit_error": "Error submitting rating. Try again."
+  ,"edit_rating": "Edit Rating"
+  ,"rate_place": "Rate Place"
+  ,"overall_rating": "Overall Rating"
+  ,"overall_rating_desc": "How was your overall experience at this place?"
+  ,"accessibility": "Accessibility"
+  ,"accessibility_desc": "Ease of access and movement"
+  ,"cleanliness": "Cleanliness"
+  ,"cleanliness_desc": "State of preservation and cleaning"
+  ,"infrastructure": "Infrastructure"
+  ,"infrastructure_desc": "Quality of facilities"
+  ,"safety": "Safety"
+  ,"safety_desc": "Feeling of safety during the visit"
+  ,"experience": "Experience"
+  ,"experience_desc": "Quality of experience and activities offered"
+  ,"recommend_question": "Would you recommend this place?"
+  ,"update": "Update"
+  ,"submit": "Submit"
+  ,"rating_label_very_bad": "Very Bad"
+  ,"rating_label_bad": "Bad"
+  ,"rating_label_regular": "Average"
+  ,"rating_label_good": "Good"
+  ,"rating_label_excellent": "Excellent"
+  ,"essential": "ESSENTIAL"
+  ,"important": "IMPORTANT"
+  ,"recommended": "RECOMMENDED"
+  ,"general_cap": "GENERAL"
+  ,"all_tips": "All"
+  ,"report_problem": "Report Problem"
+  ,"tour_point_added": "Tourist point added"
+  ,"error_saving": "Error saving"
+  ,"enter_name": "Enter the name"
+  ,"enter_title": "Enter the title"
+  ,"description_too_short": "Description too short"
+  ,"center_marker": "Center marker"
+  ,"invalid_number": "Invalid"
+  ,"app_name_label": "Application Name"
+  ,"clear_favorites_question_short": "Are you sure you want to remove all favorites?"
+  ,"preservation_guide": "Preservation Guide"
+  ,"points_found": "{count} point(s) found"
+  ,"points_count_with_filters": "{count} point(s) - {filters}"
+  ,"details": "Details"
+  ,"preserve": "Preserve"
+  ,"nearby": "Nearby"
+  ,"photos": "Photos"
+  ,"ratings": "Ratings"
+  ,"tour_points_statistics": "Tourist Points Statistics"
+  ,"image_counter": "{index} of {total}"
+  ,"problem_list_litter": "Accumulated trash"
+  ,"problem_list_damage": "Heritage damage"
+  ,"problem_list_vandalism": "Vandalism"
+  ,"problem_list_access": "Access issues"
+  ,"problem_list_other": "Others"
+  ,"preservation_tips_shared": "Preservation tips shared!"
+}

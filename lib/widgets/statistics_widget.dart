@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import '../data/tour_points_data.dart';
 
 class StatisticsWidget extends StatelessWidget {
@@ -16,7 +17,7 @@ class StatisticsWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'Estatísticas dos Pontos Turísticos',
+              'tour_points_statistics'.tr(),
               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -28,7 +29,7 @@ class StatisticsWidget extends StatelessWidget {
                   child: _buildStatItem(
                     context,
                     Icons.location_on,
-                    'Total de Pontos',
+                    'tour_points_total'.tr(),
                     stats['totalPoints'].toString(),
                   ),
                 ),
@@ -36,7 +37,7 @@ class StatisticsWidget extends StatelessWidget {
                   child: _buildStatItem(
                     context,
                     Icons.star,
-                    'Avaliação Média',
+                    'average_rating'.tr(),
                     stats['averageRating'].toString(),
                   ),
                 ),
@@ -49,7 +50,7 @@ class StatisticsWidget extends StatelessWidget {
                   child: _buildStatItem(
                     context,
                     Icons.photo_library,
-                    'Total de Fotos',
+                    'total_photos'.tr(),
                     stats['totalPhotos'].toString(),
                   ),
                 ),
@@ -57,7 +58,7 @@ class StatisticsWidget extends StatelessWidget {
                   child: _buildStatItem(
                     context,
                     Icons.thumb_up,
-                    'Melhor Avaliado',
+                    'best_rated'.tr(),
                     stats['highestRated'].name,
                   ),
                 ),

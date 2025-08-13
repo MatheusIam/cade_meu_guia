@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -56,14 +57,14 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
   }
   final _photosCtrl = TextEditingController(text: '0');
   double _rating = 0.0;
-  String _activityType = 'Caminhada';
+  String _activityType = 'hiking';
   bool _saving = false;
 
   final List<String> _activityTypes = const [
-    'Caminhada',
-    'Contemplação',
-    'Aventura',
-    'Cultural',
+    'hiking',
+    'contemplation',
+    'adventure',
+    'cultural',
   ];
 
   @override
@@ -100,13 +101,13 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
       if (mounted) {
         Navigator.pop(context, point);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Ponto turístico adicionado')),
+          SnackBar(content: Text('tour_point_added'.tr())),
         );
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao salvar: $e')),
+          SnackBar(content: Text('${'error_saving'.tr()}: $e')),
         );
       }
     } finally {
@@ -117,7 +118,7 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Novo Ponto Turístico')),
+  appBar: AppBar(title: Text('new_tour_point'.tr())),
       body: Form(
         key: _formKey,
         child: ListView(
@@ -125,25 +126,25 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
           children: [
             TextFormField(
               controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nome curto'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o nome' : null,
+      decoration: InputDecoration(labelText: 'short_name'.tr()),
+      validator: (v) => (v == null || v.trim().isEmpty) ? 'enter_name'.tr() : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _titleCtrl,
-              decoration: const InputDecoration(labelText: 'Título'),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'Informe o título' : null,
+      decoration: InputDecoration(labelText: 'title_label'.tr()),
+      validator: (v) => (v == null || v.trim().isEmpty) ? 'enter_title'.tr() : null,
             ),
             const SizedBox(height: 12),
             TextFormField(
               controller: _descCtrl,
-              decoration: const InputDecoration(labelText: 'Descrição'),
+      decoration: InputDecoration(labelText: 'description_label'.tr()),
               maxLines: 4,
-              validator: (v) => (v == null || v.trim().length < 10) ? 'Descrição muito curta' : null,
+      validator: (v) => (v == null || v.trim().length < 10) ? 'description_too_short'.tr() : null,
             ),
             const SizedBox(height: 12),
             Text(
-              'Selecione a localização no mapa',
+      'select_location_on_map'.tr(),
               style: Theme.of(context).textTheme.titleMedium,
             ),
             const SizedBox(height: 8),
@@ -268,7 +269,7 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
                           borderRadius: BorderRadius.circular(8),
                           child: Padding(
                             padding: const EdgeInsets.all(8.0),
-                            child: Text('Permissão de localização negada', style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
+                            child: Text('location_permission_denied'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
                           ),
                         ),
                       ),
@@ -281,18 +282,18 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
               children: [
                 Expanded(child: TextFormField(
                   controller: _latCtrl,
-                  decoration: const InputDecoration(labelText: 'Latitude'),
+                  decoration: InputDecoration(labelText: 'latitude'.tr()),
                   readOnly: true,
                 )),
                 const SizedBox(width: 12),
                 Expanded(child: TextFormField(
                   controller: _lngCtrl,
-                  decoration: const InputDecoration(labelText: 'Longitude'),
+                  decoration: InputDecoration(labelText: 'longitude'.tr()),
                   readOnly: true,
                 )),
                 IconButton(
                   icon: const Icon(Icons.my_location),
-                  tooltip: 'Centralizar marcador',
+                  tooltip: 'center_marker'.tr(),
                   onPressed: () {
                     _mapController.move(_current, _mapController.camera.zoom);
                   },
@@ -302,14 +303,14 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
             const SizedBox(height: 12),
             DropdownButtonFormField<String>(
               value: _activityType,
-              decoration: const InputDecoration(labelText: 'Tipo de atividade'),
+              decoration: InputDecoration(labelText: 'activity_type'.tr()),
               items: _activityTypes
-                  .map((t) => DropdownMenuItem(value: t, child: Text(t)))
+                  .map((t) => DropdownMenuItem(value: t, child: Text(t.tr())))
                   .toList(),
               onChanged: (v) => setState(() => _activityType = v ?? _activityType),
             ),
             const SizedBox(height: 12),
-            Text('Nota inicial: ${_rating.toStringAsFixed(1)}'),
+            Text('${'initial_rating'.tr()}: ${_rating.toStringAsFixed(1)}'),
             Slider(
               value: _rating,
               min: 0,
@@ -321,9 +322,9 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
             const SizedBox(height: 12),
             TextFormField(
               controller: _photosCtrl,
-              decoration: const InputDecoration(labelText: 'Qtd. fotos (estimativa)'),
+              decoration: InputDecoration(labelText: 'photos_quantity_hint'.tr()),
               keyboardType: TextInputType.number,
-              validator: (v) => (int.tryParse(v ?? '') == null) ? 'Inválida' : null,
+              validator: (v) => (int.tryParse(v ?? '') == null) ? 'invalid_number'.tr() : null,
             ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
@@ -335,7 +336,7 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
                       child: CircularProgressIndicator(strokeWidth: 2),
                     )
                   : const Icon(Icons.save),
-              label: Text(_saving ? 'Salvando...' : 'Salvar'),
+              label: Text(_saving ? 'saving'.tr() : 'save'.tr()),
             ),
           ],
         ),

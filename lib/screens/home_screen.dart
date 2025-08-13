@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
@@ -25,7 +26,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
   List<TourPoint> _tourPoints = [];
   List<TourPoint> _filteredTourPoints = [];
-  String _selectedCategory = 'Todos';
+  String _selectedCategory = 'Todos'; // manter valor interno PT para compat c/ dados; mapear para chaves na UI
   String _searchQuery = '';
 
   @override
@@ -117,6 +118,18 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${_filteredTourPoints.length} ponto(s) - $summary';
   }
 
+  String _localizedCategory(String category) {
+    switch (category) {
+      case 'Todos': return 'all'.tr();
+      case 'Caminhada': return 'hiking'.tr();
+      case 'Contemplação': return 'contemplation'.tr();
+      case 'Aventura': return 'adventure'.tr();
+      case 'Cultural': return 'cultural'.tr();
+      case 'Visitados': return 'visited'.tr();
+    }
+    return category;
+  }
+
   void _onMarkerTapped(TourPoint tourPoint) {
     Navigator.push(
       context,
@@ -139,7 +152,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case 0:
         // Mapa - já estamos na tela principal
         break;
-      case 1:
+  case 1:
         _showFavoritesBottomSheet();
         break;
       case 2:
@@ -178,9 +191,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     children: [
                       TabBar(
-                        tabs: const [
-                          Tab(icon: Icon(Icons.favorite), text: 'Favoritos'),
-                          Tab(icon: Icon(Icons.eco), text: 'Preservação'),
+                        tabs: [
+                          Tab(icon: const Icon(Icons.favorite), text: 'favorites'.tr()),
+                          Tab(icon: const Icon(Icons.eco), text: 'preservation'.tr()),
                         ],
                         labelColor: Theme.of(context).colorScheme.primary,
                         unselectedLabelColor: Theme.of(context).colorScheme.onSurfaceVariant,
@@ -219,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 children: [
                   Expanded(
                     child: Text(
-                      'Pontos Favoritos',
+                      'favorite_points'.tr(),
                       style: Theme.of(context).textTheme.headlineSmall,
                     ),
                   ),
@@ -240,17 +253,17 @@ class _HomeScreenState extends State<HomeScreen> {
                     ),
                   if (favoritePoints.length > 1)
                     IconButton(
-                      tooltip: 'Limpar todos',
+                      tooltip: 'clear_all'.tr(),
                       icon: const Icon(Icons.delete_sweep),
                       onPressed: () async {
                         final confirm = await showDialog<bool>(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: const Text('Limpar Favoritos'),
-                            content: const Text('Tem certeza que deseja remover todos os favoritos?'),
+                            title: Text('clear_favorites_title'.tr()),
+                            content: Text('clear_favorites_question_short'.tr()),
                             actions: [
-                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancelar')),
-                              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Limpar')),
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('cancel'.tr())),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('clear'.tr())),
                             ],
                           ),
                         );
@@ -281,12 +294,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Nenhum favorito ainda',
+                        'none_favorite_yet'.tr(),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Toque no ícone de coração em um ponto para adicioná-lo aqui.',
+                        'add_favorite_hint'.tr(),
                         style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
@@ -320,7 +333,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         await favoritesProvider.removeFavorite(point.id);
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
-                            content: Text('${point.name} removido dos favoritos'),
+                            content: Text('${point.name} ${'removed_from_favorites'.tr()}'),
                             action: SnackBarAction(
                               label: 'Desfazer',
                               onPressed: () async {
@@ -350,7 +363,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             onPressed: () async {
                               await favoritesProvider.toggleFavorite(point);
                             },
-                            tooltip: isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+                            tooltip: isFav ? 'remove_from_favorites'.tr() : 'add_to_favorites'.tr(),
                           ),
                           onTap: () {
                             Navigator.pop(context); // Fecha o bottom sheet
@@ -378,14 +391,14 @@ class _HomeScreenState extends State<HomeScreen> {
             child: Column(
               children: [
                 Text(
-                  'Turismo Sustentável',
+                  'sustainable_tourism'.tr(),
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Conheça nossas dicas essenciais para um turismo consciente e sustentável',
+                  'sustainable_tourism_desc'.tr(),
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Theme.of(context).colorScheme.onSurfaceVariant,
                   ),
@@ -411,14 +424,14 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         const SizedBox(height: 12),
                         Text(
-                          'Juntos pela Preservação',
+                          'together_preservation'.tr(),
                           style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                         ),
                         const SizedBox(height: 8),
                         Text(
-                          'Cada turista consciente contribui para a preservação dos nossos patrimônios naturais e culturais. Seja parte desta mudança!',
+                          'together_preservation_desc'.tr(),
                           style: Theme.of(context).textTheme.bodyMedium,
                           textAlign: TextAlign.center,
                         ),
@@ -426,9 +439,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            _buildPreservationStat('🌱', '15', 'Dicas'),
-                            _buildPreservationStat('🏛️', '8', 'Pontos'),
-                            _buildPreservationStat('👥', '100+', 'Turistas'),
+                            _buildPreservationStat('🌱', '15', 'tips'.tr()),
+                            _buildPreservationStat('🏛️', '8', 'points'.tr()),
+                            _buildPreservationStat('👥', '100+', 'tourists'.tr()),
                           ],
                         ),
                       ],
@@ -442,7 +455,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     _showPreservationDialog();
                   },
                   icon: const Icon(Icons.visibility),
-                  label: const Text('Ver Todas as Dicas'),
+                  label: Text('see_all_tips'.tr()),
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
                   ),
@@ -483,7 +496,7 @@ class _HomeScreenState extends State<HomeScreen> {
       builder: (context) => Dialog.fullscreen(
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('Guia de Preservação'),
+            title: Text('preservation_guide'.tr()),
             backgroundColor: Theme.of(context).colorScheme.primaryContainer,
             actions: [
               IconButton(
@@ -530,13 +543,13 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     children: [
                       Text(
-                        'Explorar Pontos Turísticos',
+                        'explore_points'.tr(),
                         style: Theme.of(context).textTheme.headlineSmall,
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         decoration: InputDecoration(
-                          hintText: 'Buscar pontos turísticos...',
+                          hintText: 'search_points_hint'.tr(),
                           prefixIcon: const Icon(Icons.search),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(12),
@@ -552,7 +565,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         scrollDirection: Axis.horizontal,
                         child: Row(
                           children: [
-                            'Todos',
+                            'Todos', // valores internos
                             'Caminhada',
                             'Contemplação',
                             'Aventura',
@@ -562,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             return Padding(
                               padding: const EdgeInsets.only(right: 8),
                               child: FilterChip(
-                                label: Text(category),
+                                label: Text(_localizedCategory(category)),
                                 selected: isSelected,
                                 onSelected: (selected) {
                                   _filterByCategory(category);
@@ -578,7 +591,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(
-                            '${_filteredTourPoints.length} ponto(s) encontrado(s)',
+                            'points_found'.tr(namedArgs: {'count': _filteredTourPoints.length.toString()}),
                             style: Theme.of(context).textTheme.bodySmall?.copyWith(
                               color: Theme.of(context).colorScheme.onSurfaceVariant,
                             ),
@@ -590,7 +603,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                 setModalState(() {});
                               },
                               icon: const Icon(Icons.clear, size: 16),
-                              label: const Text('Limpar'),
+                              label: Text('clear'.tr()),
                               style: TextButton.styleFrom(
                                 padding: const EdgeInsets.symmetric(horizontal: 8),
                               ),
@@ -613,7 +626,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Nenhum ponto turístico encontrado',
+                                'no_points_found'.tr(),
                                 style: TextStyle(
                                   color: Colors.grey.shade600,
                                   fontSize: 16,
@@ -621,7 +634,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 8),
                               Text(
-                                'Tente ajustar os filtros ou busca',
+                                'try_adjust_filters'.tr(),
                                 style: TextStyle(
                                   color: Colors.grey.shade500,
                                   fontSize: 14,
@@ -693,7 +706,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          '${point.photoCount} fotos',
+                                          'photos_count'.tr(namedArgs:{'count': point.photoCount.toString()}),
                                           style: const TextStyle(
                                             color: Colors.grey,
                                             fontSize: 12,
@@ -708,7 +721,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   children: [
                                     _CompactIconButton(
                                       icon: Icons.center_focus_strong,
-                                      tooltip: 'Centralizar no mapa',
+                                      tooltip: 'center_on_map'.tr(),
                                       onTap: () {
                                         Navigator.pop(context);
                                         _centerMapOnLocation(point.location);
@@ -716,7 +729,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     ),
                                     _CompactIconButton(
                                       icon: Icons.info_outline,
-                                      tooltip: 'Ver detalhes',
+                                      tooltip: 'view_details'.tr(),
                                       onTap: () {
                                         Navigator.pop(context);
                                         _onMarkerTapped(point);
@@ -725,7 +738,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                     _CompactIconButton(
                                       icon: isFav ? Icons.favorite : Icons.favorite_border,
                                       color: isFav ? Colors.red : null,
-                                      tooltip: isFav ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+                                      tooltip: isFav ? 'remove_from_favorites'.tr() : 'add_to_favorites'.tr(),
                                       onTap: () async {
                                         await favoritesProvider.toggleFavorite(point);
                                       },
@@ -756,7 +769,7 @@ class _HomeScreenState extends State<HomeScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text('Cade Meu Guia'),
+            Text('app_name'.tr()),
             if (_selectedCategory != 'Todos' || _searchQuery.isNotEmpty)
               Text(
                 _getFilterSummary(),
@@ -775,7 +788,7 @@ class _HomeScreenState extends State<HomeScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
-            tooltip: 'Configurações',
+            tooltip: 'settings_page'.tr(),
             onPressed: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
@@ -786,7 +799,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           IconButton(
             icon: const Icon(Icons.add_location_alt),
-            tooltip: 'Adicionar ponto',
+            tooltip: 'add_point'.tr(),
             onPressed: () async {
               final result = await Navigator.of(context).push(
                 MaterialPageRoute(
@@ -809,17 +822,17 @@ class _HomeScreenState extends State<HomeScreen> {
                   : Icons.dark_mode,
             ),
             onPressed: () => themeProvider.toggleTheme(),
-            tooltip: 'Alternar Tema',
+            tooltip: 'toggle_theme'.tr(),
           ),
           PopupMenuButton<String>(
             onSelected: _filterByCategory,
             itemBuilder: (context) => [
-              const PopupMenuItem(value: 'Todos', child: Text('Todos')),
-              const PopupMenuItem(value: 'Caminhada', child: Text('Caminhada')),
-              const PopupMenuItem(value: 'Contemplação', child: Text('Contemplação')),
-              const PopupMenuItem(value: 'Aventura', child: Text('Aventura')),
-              const PopupMenuItem(value: 'Cultural', child: Text('Cultural')),
-              const PopupMenuItem(value: 'Visitados', child: Text('Visitados')),
+              PopupMenuItem(value: 'Todos', child: Text('all'.tr())),
+              PopupMenuItem(value: 'Caminhada', child: Text('hiking'.tr())),
+              PopupMenuItem(value: 'Contemplação', child: Text('contemplation'.tr())),
+              PopupMenuItem(value: 'Aventura', child: Text('adventure'.tr())),
+              PopupMenuItem(value: 'Cultural', child: Text('cultural'.tr())),
+              PopupMenuItem(value: 'Visitados', child: Text('visited'.tr())),
             ],
             icon: Icon(
               Icons.filter_list,
@@ -827,7 +840,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ? Theme.of(context).colorScheme.secondary 
                   : null,
             ),
-            tooltip: 'Filtrar por categoria',
+            tooltip: 'filter_by_category'.tr(),
           ),
         ],
       ),
@@ -885,13 +898,13 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: _onBottomNavTapped,
         type: BottomNavigationBarType.fixed,
         items: [
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.map),
-            label: 'Mapa',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.map),
+            label: 'map'.tr(),
           ),
-          const BottomNavigationBarItem(
-            icon: Icon(Icons.favorite),
-            label: 'Favoritos',
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.favorite),
+            label: 'favorites'.tr(),
           ),
           BottomNavigationBarItem(
             icon: Stack(
@@ -915,7 +928,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
               ],
             ),
-            label: 'Explorar',
+      label: 'explore'.tr(),
           ),
         ],
       ),
@@ -923,7 +936,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onPressed: () {
           _mapController.move(const LatLng(2.8235, -60.6758), 13.0);
         },
-        tooltip: 'Centralizar mapa',
+    tooltip: 'center_map'.tr(),
         child: const Icon(Icons.my_location),
       ),
     );
