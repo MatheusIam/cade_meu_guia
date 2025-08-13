@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import '../utils/permission_helper.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../models/tour_point.dart';
@@ -30,11 +32,26 @@ class _HomeScreenState extends State<HomeScreen> {
   List<TourPoint> _filteredTourPoints = [];
   String _selectedCategory = 'all';
   String _searchQuery = '';
+  bool _requestedInitialLocation = false;
+  LatLng? _userLocation; // localização atual do usuário para marcador persistente
 
   @override
   void initState() {
     super.initState();
-    _loadTourPoints();
+  _loadTourPoints();
+  WidgetsBinding.instance.addPostFrameCallback((_) => _centerOnUserLocationOnce());
+  }
+  Future<void> _centerOnUserLocationOnce() async {
+    if (_requestedInitialLocation) return;
+    _requestedInitialLocation = true;
+    final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
+    if(!allowed) return;
+    try {
+      final pos = await Geolocator.getCurrentPosition();
+      final latLng = LatLng(pos.latitude, pos.longitude);
+      _userLocation = latLng;
+      _mapController.move(latLng, 15.5);
+    } catch(_){/* ignore */}
   }
 
   void _loadTourPoints() {
@@ -931,40 +948,69 @@ class _HomeScreenState extends State<HomeScreen> {
                 .toList(),
           ),
           MarkerLayer(
-      markers: _filteredTourPoints
-        .where((point) => !(point.polygon != null && point.polygon!.length >= 3))
-        .map((point) {
-              return Marker(
-                point: point.location,
-                width: 40.0,
-                height: 40.0,
-                child: GestureDetector(
-                  onTap: () => _onMarkerTapped(point),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 2,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.3),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
+            markers: [
+              ..._filteredTourPoints
+                  .where((point) => !(point.polygon != null && point.polygon!.length >= 3))
+                  .map((point) {
+                final icon = _iconForActivity(point.activityType);
+                return Marker(
+                  point: point.location,
+                  width: 44,
+                  height: 44,
+                  child: GestureDetector(
+                    onTap: () => _onMarkerTapped(point),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        Container(
+                          width: 44,
+                          height: 44,
+                          decoration: const BoxDecoration(shape: BoxShape.circle),
+                        ),
+                        Container(
+                          width: 38,
+                          height: 38,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            gradient: LinearGradient(
+                              begin: Alignment.topCenter,
+                              end: Alignment.bottomCenter,
+                              colors: [
+                                Theme.of(context).colorScheme.primary,
+                                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                              ],
+                            ),
+                            border: Border.all(color: Colors.white, width: 2.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withOpacity(0.3),
+                                blurRadius: 6,
+                                offset: const Offset(0,3),
+                              )
+                            ],
+                          ),
+                          child: Icon(icon, color: Colors.white, size: 20),
                         ),
                       ],
                     ),
-                    child: const Icon(
-                      Icons.location_on,
-                      color: Colors.white,
-                      size: 24,
+                  ),
+                );
+              }),
+              if (_userLocation != null)
+                Marker(
+                  point: _userLocation!,
+                  width: 36,
+                  height: 36,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.18),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: Colors.blueAccent, width: 2),
                     ),
+                    child: const Center(child: Icon(Icons.circle, size: 10, color: Colors.blueAccent)),
                   ),
                 ),
-              );
-            }).toList(),
+            ],
           ),
         ],
       ),
@@ -1038,7 +1084,10 @@ class _HomeScreenState extends State<HomeScreen> {
     if (choice == 'area') {
       final result = await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => const AddAreaScreen(),
+          builder: (_) => AddAreaScreen(
+            initialCenter: _mapController.camera.center,
+            initialZoom: _mapController.camera.zoom,
+          ),
         ),
       );
       if (result != null) {
@@ -1050,7 +1099,10 @@ class _HomeScreenState extends State<HomeScreen> {
     } else if (choice == 'point') {
       final result = await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => const AddTourPointScreen(),
+          builder: (_) => AddTourPointScreen(
+            initialCenter: _mapController.camera.center,
+            initialZoom: _mapController.camera.zoom,
+          ),
         ),
       );
       if (result != null) {

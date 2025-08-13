@@ -4,6 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
+import 'edit_area_screen.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/ratings_provider.dart';
 import 'manage_tour_point_screen.dart';
@@ -26,12 +27,17 @@ class _TourPointScreenState extends State<TourPointScreen>
   late TabController _tabController;
   int _currentImageIndex = 0;
   late PageController _pageController;
+  List<TourPoint> _childPoints = [];
+  final _dist = const Distance();
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 4, vsync: this);
     _pageController = PageController();
+    if (widget.tourPoint.isArea) {
+      _childPoints = TourPointsData.getChildPoints(widget.tourPoint.id);
+    }
   }
 
   @override
@@ -167,9 +173,21 @@ class _TourPointScreenState extends State<TourPointScreen>
         .toList();
   }
 
+
+  double get _perimeterMeters {
+    final poly = widget.tourPoint.polygon;
+    if (poly == null || poly.length < 2) return 0;
+    double sum = 0;
+    for (int i = 0; i < poly.length; i++) {
+      final a = poly[i];
+      final b = poly[(i + 1) % poly.length];
+      sum += _dist(a, b);
+    }
+    return sum;
+  }
+
   @override
   Widget build(BuildContext context) {
-    
     return Scaffold(
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) {
@@ -181,8 +199,11 @@ class _TourPointScreenState extends State<TourPointScreen>
                   ? Theme.of(context).appBarTheme.backgroundColor
                   : Theme.of(context).colorScheme.surfaceContainerHighest,
               flexibleSpace: FlexibleSpaceBar(
+                titlePadding: const EdgeInsetsDirectional.only(start: 56, bottom: 16, end: 72),
                 title: Text(
                   widget.tourPoint.name,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     color: Theme.of(context).appBarTheme.foregroundColor ?? Theme.of(context).colorScheme.onSurface,
                     fontWeight: FontWeight.bold,
@@ -249,6 +270,23 @@ class _TourPointScreenState extends State<TourPointScreen>
                   onPressed: _shareLocation,
                   tooltip: 'share'.tr(),
                 ),
+                if (widget.tourPoint.isArea)
+                  IconButton(
+                    icon: const Icon(Icons.edit_location_alt),
+                    tooltip: 'edit_area_title'.tr(),
+                    onPressed: () async {
+                      final updated = await Navigator.of(context).push(
+                        MaterialPageRoute(
+                          builder: (_) => EditAreaScreen(area: widget.tourPoint),
+                        ),
+                      );
+                      if (updated is TourPoint && mounted) {
+                        setState(() {
+                          // reconstrução simples: poderia ser via provider
+                        });
+                      }
+                    },
+                  ),
                 if (TourPointsData.isCustomPoint(widget.tourPoint.id))
                   IconButton(
                     icon: const Icon(Icons.edit_location_alt),
@@ -256,7 +294,11 @@ class _TourPointScreenState extends State<TourPointScreen>
                     onPressed: () async {
                       final updated = await Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => ManageTourPointScreen(existing: widget.tourPoint),
+                          builder: (_) => ManageTourPointScreen(
+                            existing: widget.tourPoint,
+                            initialCenter: widget.tourPoint.location,
+                            initialZoom: 16,
+                          ),
                         ),
                       );
                       if (updated is TourPoint) {
@@ -342,6 +384,10 @@ class _TourPointScreenState extends State<TourPointScreen>
           _buildDetailedInfoSection(),
           const SizedBox(height: 24),
           _buildChildPointsSection(),
+          if (widget.tourPoint.isArea) ...[
+            const SizedBox(height: 24),
+            _buildAreaMetricsSection(),
+          ],
         ],
       ),
     );
@@ -353,6 +399,7 @@ class _TourPointScreenState extends State<TourPointScreen>
       child: MapWidget(
         location: widget.tourPoint.location,
         zoom: 16.0,
+  activityType: widget.tourPoint.activityType,
         width: double.infinity,
         height: double.infinity,
       ),
@@ -392,7 +439,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'preservation'.tr() + ' - ' + widget.tourPoint.name,
+                    '${'preservation'.tr()} - ${widget.tourPoint.name}',
                     style: Theme.of(context).textTheme.bodyMedium,
                   ),
                   const SizedBox(height: 16),
@@ -674,18 +721,19 @@ class _TourPointScreenState extends State<TourPointScreen>
         children: [
           Text(
             'conscious_tourism_positive'.tr(),
+            textAlign: TextAlign.center,
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
               fontWeight: FontWeight.bold,
             ),
           ),
           const SizedBox(height: 12),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildStatItem('🌱', 'preservation'.tr(), 'environmental'.tr()),
               _buildStatItem('🏛️', 'heritage'.tr(), 'cultural'.tr()),
               _buildStatItem('🤝', 'local_economy'.tr(), 'social'.tr()),
-            ],
+            ].map((w) => Expanded(child: w)).toList(),
           ),
         ],
       ),
@@ -694,17 +742,22 @@ class _TourPointScreenState extends State<TourPointScreen>
 
   Widget _buildStatItem(String icon, String label, String subtitle) {
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(icon, style: const TextStyle(fontSize: 24)),
         const SizedBox(height: 4),
         Text(
           label,
+          textAlign: TextAlign.center,
           style: Theme.of(context).textTheme.bodyMedium?.copyWith(
             fontWeight: FontWeight.bold,
           ),
         ),
+        const SizedBox(height: 2),
         Text(
           subtitle,
+          textAlign: TextAlign.center,
+          softWrap: true,
           style: Theme.of(context).textTheme.bodySmall?.copyWith(
             color: Theme.of(context).colorScheme.onSurfaceVariant,
           ),
@@ -899,5 +952,34 @@ class _TourPointScreenState extends State<TourPointScreen>
         ),
       ],
     );
+  }
+
+  Widget _buildAreaMetricsSection() {
+    final perim = _perimeterMeters;
+    final perimKm = perim / 1000;
+    final poly = widget.tourPoint.polygon ?? [];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'area_details'.tr(),
+          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+        ),
+        const SizedBox(height: 12),
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
+          children: [
+            _metricChip('vertices'.tr(), poly.length.toString()),
+            _metricChip('perimeter'.tr(), perimKm < 1 ? '${perim.toStringAsFixed(0)} m' : '${perimKm.toStringAsFixed(2)} km'),
+            _metricChip('child_points'.tr(), _childPoints.length.toString()),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _metricChip(String label, String value) {
+    return Chip(label: Text('$label: $value'));
   }
 }

@@ -21,6 +21,7 @@ class PreservationWidget extends StatefulWidget {
 class _PreservationWidgetState extends State<PreservationWidget> {
   PreservationType? _selectedType;
   Future<List<PreservationTip>>? _futureTips;
+  Locale? _lastLocale; // para detectar mudança de idioma
 
   @override
   void initState() {
@@ -48,8 +49,30 @@ class _PreservationWidgetState extends State<PreservationWidget> {
   }
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final currentLocale = context.locale; // easy_localization
+    if (_lastLocale != currentLocale) {
+      _lastLocale = currentLocale;
+      // Invalida cache e recarrega dados na mudança de idioma
+      PreservationData.invalidate();
+      _futureTips = _rebuildFutureForCurrentFilter();
+    }
+  }
+
+  Future<List<PreservationTip>> _rebuildFutureForCurrentFilter() {
+    if (widget.activityType != null && !widget.showAllTips) {
+      return PreservationData.getTipsForActivity(widget.activityType!);
+    }
+    if (_selectedType != null) {
+      return PreservationData.getTipsByType(_selectedType!);
+    }
+    return PreservationData.getTipsByPriority();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Card(
+  final cardContent = Card(
       margin: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -131,36 +154,47 @@ class _PreservationWidgetState extends State<PreservationWidget> {
             ),
           const Divider(height: 1),
           FutureBuilder<List<PreservationTip>>(
-            future: _futureTips,
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Padding(
-                  padding: EdgeInsets.all(32),
-                  child: Center(child: CircularProgressIndicator()),
+              future: _futureTips,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Padding(
+                    padding: EdgeInsets.all(32),
+                    child: Center(child: CircularProgressIndicator()),
+                  );
+                }
+                if (snapshot.hasError) {
+                  return Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Center(child: Text('error_loading'.tr())),
+                  );
+                }
+                final data = snapshot.data ?? [];
+                if (data.isEmpty) {
+                  return Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Center(child: Text('no_tips_for_filter'.tr())),
+                  );
+                }
+                // Em modo "todas as dicas" usamos Column simples (rolagem externa) para evitar overflow
+                if (widget.showAllTips) {
+                  return Column(
+                    children: [
+                      for (int i = 0; i < data.length; i++) ...[
+                        _buildTipItem(data[i]),
+                        if (i < data.length - 1) const Divider(height: 1),
+                      ]
+                    ],
+                  );
+                }
+                // Caso compacto (embutido em outra tela) segue comportamento anterior (lista sem rolagem interna)
+                return ListView.separated(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: data.length,
+                  separatorBuilder: (context, index) => const Divider(height: 1),
+                  itemBuilder: (context, index) => _buildTipItem(data[index]),
                 );
-              }
-              if (snapshot.hasError) {
-                return Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Center(child: Text('error_loading'.tr())),
-                );
-              }
-              final data = snapshot.data ?? [];
-              if (data.isEmpty) {
-                return Padding(
-                  padding: const EdgeInsets.all(32),
-                  child: Center(child: Text('no_tips_for_filter'.tr())),
-                );
-              }
-              return ListView.separated(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: data.length,
-                separatorBuilder: (context, index) => const Divider(height: 1),
-                itemBuilder: (context, index) => _buildTipItem(data[index]),
-              );
-            },
-          ),
+              }),
           if (!widget.showAllTips && widget.activityType != null)
             Padding(
               padding: const EdgeInsets.all(16),
@@ -175,6 +209,14 @@ class _PreservationWidgetState extends State<PreservationWidget> {
         ],
       ),
     );
+
+    if (widget.showAllTips) {
+      // Envolve em rolagem para evitar overflow em tela cheia
+      return SingleChildScrollView(
+        child: cardContent,
+      );
+    }
+    return cardContent;
   }
 
   Widget _buildTipItem(PreservationTip tip) {

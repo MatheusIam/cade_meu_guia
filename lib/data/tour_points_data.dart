@@ -80,6 +80,9 @@ class TourPointsData {
         'assets/images/parque_rio_branco_1.jpg',
         'assets/images/parque_rio_branco_2.jpg',
       ],
+  history: 'Criado como espaço verde urbano para lazer e integração com a natureza local.',
+  significance: 'Importante área de convivência e bem-estar para moradores e visitantes.',
+  purpose: 'Promover contato com a natureza e atividades recreativas sustentáveis.',
     ),
     const TourPoint(
       id: '3',
@@ -95,6 +98,9 @@ class TourPointsData {
         'assets/images/memorial_pioneiros_1.jpg',
         'assets/images/memorial_pioneiros_2.jpg',
       ],
+  history: 'Fundado para preservar relatos e objetos dos primeiros colonizadores da região.',
+  significance: 'Centro de memória e identidade cultural roraimense.',
+  purpose: 'Educar e sensibilizar sobre a formação socio-histórica local.',
     ),
     const TourPoint(
       id: '4',
@@ -113,6 +119,9 @@ class TourPointsData {
         'assets/images/casa_cultura_2.jpg',
         'assets/images/casa_cultura_3.jpg',
       ],
+  history: 'Instalada em prédio histórico adaptado para uso cultural.',
+  significance: 'Ponto de difusão de expressões artísticas regionais.',
+  purpose: 'Fomentar e preservar manifestações culturais locais.',
     ),
     const TourPoint(
       id: '5',
@@ -130,6 +139,9 @@ class TourPointsData {
         'assets/images/parque_anaua_3.jpg',
         'assets/images/parque_anaua_4.jpg',
       ],
+  history: 'Desenvolvido em etapas ao longo de políticas de urbanização sustentável.',
+  significance: 'Maior área pública de lazer estruturado da cidade.',
+  purpose: 'Oferecer múltiplas atividades esportivas e recreativas à população.',
     ),
     const TourPoint(
       id: '6',
@@ -145,6 +157,9 @@ class TourPointsData {
         'assets/images/mercado_pescadores_1.jpg',
         'assets/images/mercado_pescadores_2.jpg',
       ],
+  history: 'Originado da tradição de comercialização de pescado local às margens do rio.',
+  significance: 'Preserva saberes gastronômicos e economia tradicional.',
+  purpose: 'Valorizar a culinária regional e gerar renda a comunidades pesqueiras.',
     ),
     const TourPoint(
       id: '7',
@@ -161,6 +176,9 @@ class TourPointsData {
         'assets/images/praia_grande_2.jpg',
         'assets/images/praia_grande_3.jpg',
       ],
+  history: 'Formada sazonalmente durante o período de vazante do Rio Branco.',
+  significance: 'Espaço natural de lazer popular e contemplação.',
+  purpose: 'Oferecer banho seguro e práticas esportivas de baixo impacto.',
     ),
     const TourPoint(
       id: '8',
@@ -173,6 +191,9 @@ class TourPointsData {
       photoCount: 95,
       activityType: 'Contemplação',
       images: ['assets/images/estadio_canarinho_1.jpg'],
+  history: 'Construído para impulsionar o futebol regional e eventos esportivos.',
+  significance: 'Símbolo esportivo e ponto de encontro comunitário.',
+  purpose: 'Promover esporte, integração social e eventos de grande público.',
     ),
   ];
 

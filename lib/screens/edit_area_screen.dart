@@ -6,6 +6,8 @@ import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
 import '../repositories/tour_point_repository.dart';
+import 'package:geolocator/geolocator.dart';
+import '../utils/permission_helper.dart';
 
 class EditAreaScreen extends StatefulWidget {
   final TourPoint area;
@@ -21,14 +23,16 @@ class _EditAreaScreenState extends State<EditAreaScreen> {
   bool _snap = true;
   bool _saving = false;
   final _mapController = MapController();
-  double _grid = 0.0002; // ~22m dependendo da latitude
+  final double _grid = 0.0002; // ~22m dependendo da latitude
   final double _snapNearbyMeters = 12; // threshold para snap a outro vértice
+  LatLng? _userLocation;
 
   @override
   void initState() {
     super.initState();
     _vertices = List<LatLng>.from(widget.area.polygon ?? []);
     _orderByAngle();
+  WidgetsBinding.instance.addPostFrameCallback((_) => _loadUserLocation());
   }
 
   void _orderByAngle() {
@@ -75,6 +79,15 @@ class _EditAreaScreenState extends State<EditAreaScreen> {
 
   void _endDrag(){
     setState(()=>_draggingIndex=null);
+  }
+
+  Future<void> _loadUserLocation() async {
+    final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
+    if(!allowed) return;
+    try {
+      final pos = await Geolocator.getCurrentPosition();
+      if(mounted) setState(()=>_userLocation = LatLng(pos.latitude, pos.longitude));
+    } catch(_){ /* ignore */ }
   }
 
   bool _hasSelfIntersection(){
@@ -150,7 +163,8 @@ class _EditAreaScreenState extends State<EditAreaScreen> {
     final centroid=_centroid();
     return Scaffold(
       appBar: AppBar(
-        title: Text('edit_area'.tr()),
+  // Título explícito para diferenciação de edição de área
+  title: Text('edit_area_title'.tr()),
         actions: [
           IconButton(
             icon: Icon(_snap?Icons.grid_on:Icons.grid_off),
@@ -191,7 +205,12 @@ class _EditAreaScreenState extends State<EditAreaScreen> {
                         for(int i=0;i<_vertices.length;i++)
                           Marker(point:_vertices[i],width:40,height:40,child:_buildDraggableHandle(i)),
                         if(_vertices.isNotEmpty)
-                          Marker(point: centroid,width:18,height:18,child: Container(decoration: BoxDecoration(color:Colors.red.withOpacity(0.9),shape:BoxShape.circle, border: Border.all(color: Colors.white,width:2))))
+                          Marker(point: centroid,width:18,height:18,child: Container(decoration: BoxDecoration(color:Colors.red.withOpacity(0.9),shape:BoxShape.circle, border: Border.all(color: Colors.white,width:2)))),
+                        if(_userLocation!=null)
+                          Marker(point:_userLocation!,width:32,height:32,child: Container(
+                            decoration: BoxDecoration(color: Colors.blue.withOpacity(0.18), shape: BoxShape.circle, border: Border.all(color: Colors.blueAccent,width:2)),
+                            child: const Center(child: Icon(Icons.circle,size:10,color:Colors.blueAccent)),
+                          )),
                       ],
                     ),
                   ],

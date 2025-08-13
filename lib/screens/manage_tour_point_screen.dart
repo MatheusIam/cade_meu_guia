@@ -7,10 +7,14 @@ import 'package:geolocator/geolocator.dart';
 import '../utils/permission_helper.dart';
 import '../models/tour_point.dart';
 import '../data/tour_points_data.dart';
+import 'package:provider/provider.dart';
+import '../repositories/tour_point_repository.dart';
 
 class ManageTourPointScreen extends StatefulWidget {
   final TourPoint? existing;
-  const ManageTourPointScreen({super.key, this.existing});
+  final LatLng? initialCenter;
+  final double? initialZoom;
+  const ManageTourPointScreen({super.key, this.existing, this.initialCenter, this.initialZoom});
 
   @override
   State<ManageTourPointScreen> createState() => _ManageTourPointScreenState();
@@ -33,6 +37,8 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
   LatLng? _userLocation;
   bool _locating = false;
   bool _permissionDenied = false;
+  List<TourPoint> _areas = [];
+  bool _loadingAreas = true;
 
   bool get isEdit => widget.existing != null;
 
@@ -52,9 +58,13 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
     _photosCtrl = TextEditingController(text: e?.photoCount.toString() ?? '0');
     _rating = e?.rating ?? 0.0;
     _activityType = _mapActivityTypeToKey(e?.activityType ?? 'hiking');
-    _current = e?.location ?? LatLng(2.8235, -60.6758);
+  _current = widget.initialCenter ?? e?.location ?? LatLng(2.8235, -60.6758);
     _latCtrl.text = _current.latitude.toStringAsFixed(6);
     _lngCtrl.text = _current.longitude.toStringAsFixed(6);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadAreas();
+      await _getUserLocation(showOnMapOnly: true); // só mostra círculo se disponível
+    });
   }
 
   String _mapActivityTypeToKey(String activityType) {
@@ -72,7 +82,7 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
     }
   }
 
-  Future<void> _getUserLocation() async {
+  Future<void> _getUserLocation({bool showOnMapOnly = false}) async {
     final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
     if (!allowed) return;
     setState(() { _locating = true; _permissionDenied = false; });
@@ -88,16 +98,38 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
       final pos = await Geolocator.getCurrentPosition();
       final latlng = LatLng(pos.latitude, pos.longitude);
       setState(() {
-        _current = latlng;
+        if(!showOnMapOnly){
+          _current = latlng;
+          _mapController.move(latlng, widget.initialZoom ?? 16);
+          _latCtrl.text = latlng.latitude.toStringAsFixed(6);
+          _lngCtrl.text = latlng.longitude.toStringAsFixed(6);
+        }
         _userLocation = latlng;
-        _latCtrl.text = latlng.latitude.toStringAsFixed(6);
-        _lngCtrl.text = latlng.longitude.toStringAsFixed(6);
-        _mapController.move(latlng, 16);
       });
     } catch (_) {
       // ignore
     } finally {
       if (mounted) setState(() { _locating = false; });
+    }
+  }
+
+  Future<void> _loadAreas() async {
+    try {
+      setState(() => _loadingAreas = true);
+      // Usar repositório se disponível via provider
+      ITourPointRepository? repo;
+      try { repo = context.read<ITourPointRepository>(); } catch (_) {}
+      List<TourPoint> list;
+      if (repo != null) {
+        list = await repo.getMain();
+      } else {
+        list = await TourPointsData.getAllTourPoints();
+      }
+      setState(() {
+        _areas = list.where((a) => a.isArea && (a.polygon?.length ?? 0) >= 3).toList();
+      });
+    } finally {
+      if (mounted) setState(() => _loadingAreas = false);
     }
   }
 
@@ -226,6 +258,18 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                           userAgentPackageName: 'dev.meuapp.guia_turistico',
                         ),
+                        if (_areas.isNotEmpty)
+                          PolygonLayer(
+                            polygons: [
+                              for (final area in _areas)
+                                Polygon(
+                                  points: area.polygon!,
+                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                                  borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                                  borderStrokeWidth: 2,
+                                ),
+                            ],
+                          ),
                         if (_userLocation != null)
                           MarkerLayer(markers: [
                             Marker(
@@ -244,6 +288,26 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                           ]),
                       ],
                     ),
+                    if (_loadingAreas)
+                      Positioned(
+                        bottom: 8,
+                        left: 8,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                          decoration: BoxDecoration(
+                            color: Colors.black54,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              SizedBox(width:14,height:14,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)),
+                              SizedBox(width:6),
+                              Text('Loading areas...', style: TextStyle(color: Colors.white, fontSize: 12)),
+                            ],
+                          ),
+                        ),
+                      ),
                     const Center(child: Icon(Icons.location_pin, size: 46, color: Colors.red)),
                     Positioned(
                       left: 8,

@@ -11,7 +11,9 @@ import '../models/tour_point.dart';
 import '../data/tour_points_data.dart';
 
 class AddTourPointScreen extends StatefulWidget {
-  const AddTourPointScreen({super.key});
+  final LatLng? initialCenter;
+  final double? initialZoom;
+  const AddTourPointScreen({super.key, this.initialCenter, this.initialZoom});
 
   @override
   State<AddTourPointScreen> createState() => _AddTourPointScreenState();
@@ -25,7 +27,7 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
   final _latCtrl = TextEditingController();
   final _lngCtrl = TextEditingController();
   final MapController _mapController = MapController();
-  LatLng _current = LatLng(2.8235, -60.6758); // centro default
+  late LatLng _current; // definido no init
   LatLng? _userLocation; // posição real do usuário para exibir no mapa
   bool _locating = false;
   bool _permissionDenied = false;
@@ -86,8 +88,12 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
   @override
   void initState() {
     super.initState();
-    // Carrega áreas principais para vincular
-    WidgetsBinding.instance.addPostFrameCallback((_) => _loadAreas());
+    _current = widget.initialCenter ?? LatLng(2.8235, -60.6758);
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      await _loadAreas();
+  // tenta obter localização só para exibir marcador do usuário
+  await _getUserLocation();
+    });
   }
 
   Future<void> _loadAreas() async {
@@ -187,7 +193,7 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
                       mapController: _mapController,
                       options: MapOptions(
                         initialCenter: _current,
-                        initialZoom: 14,
+                        initialZoom: widget.initialZoom ?? 14,
                         onPositionChanged: (pos, _) {
                           final center = pos.center;
                           setState(() {
@@ -202,6 +208,20 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
                           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                           userAgentPackageName: 'dev.meuapp.guia_turistico',
                         ),
+                        // Sobreposição das áreas existentes (contexto visual)
+                        if (_areas.any((a) => (a.polygon?.length ?? 0) >= 3))
+                          PolygonLayer(
+                            polygons: [
+                              for (final area in _areas)
+                                if ((area.polygon?.length ?? 0) >= 3)
+                                  Polygon(
+                                    points: area.polygon!,
+                                    color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
+                                    borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                                    borderStrokeWidth: 2,
+                                  ),
+                            ],
+                          ),
                         if (_userLocation != null)
                           MarkerLayer(markers: [
                             Marker(

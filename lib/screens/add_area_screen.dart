@@ -2,13 +2,17 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:geolocator/geolocator.dart';
+import '../utils/permission_helper.dart';
 import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
 import '../repositories/tour_point_repository.dart';
 
 class AddAreaScreen extends StatefulWidget {
-  const AddAreaScreen({super.key});
+  final LatLng? initialCenter;
+  final double? initialZoom;
+  const AddAreaScreen({super.key, this.initialCenter, this.initialZoom});
 
   @override
   State<AddAreaScreen> createState() => _AddAreaScreenState();
@@ -25,7 +29,10 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
   bool _saving = false;
   bool _showReorder = false;
 
-  LatLng _initialCenter = const LatLng(2.8235, -60.6758);
+  late LatLng _currentCenter;
+  LatLng? _userLocation;
+  bool _locating = false;
+  bool _permissionDenied = false;
 
   void _addVertex(LatLng p) {
     setState(() => _vertices.add(p));
@@ -57,10 +64,44 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
   }
 
   LatLng _computeCentroid() {
-    if (_vertices.isEmpty) return _initialCenter;
+    if (_vertices.isEmpty) return _currentCenter;
     double x = 0, y = 0;
     for (final v in _vertices) { x += v.latitude; y += v.longitude; }
     return LatLng(x / _vertices.length, y / _vertices.length);
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _currentCenter = widget.initialCenter ?? const LatLng(2.8235, -60.6758);
+  WidgetsBinding.instance.addPostFrameCallback((_) async { await _getUserLocation(); });
+  }
+
+  Future<void> _getUserLocation() async {
+    final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
+    if (!allowed) return;
+    setState(() { _locating = true; _permissionDenied = false; });
+    try {
+      LocationPermission perm = await Geolocator.checkPermission();
+      if (perm == LocationPermission.denied) {
+        perm = await Geolocator.requestPermission();
+      }
+      if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
+        setState(() { _permissionDenied = true; });
+        return;
+      }
+      final pos = await Geolocator.getCurrentPosition();
+      final latlng = LatLng(pos.latitude, pos.longitude);
+      setState(() {
+        _userLocation = latlng;
+        _currentCenter = latlng;
+        _mapController.move(latlng, 16);
+      });
+    } catch (_) {
+      // ignore
+    } finally {
+      if (mounted) setState(() { _locating = false; });
+    }
   }
 
   Future<void> _save() async {
@@ -167,8 +208,8 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
                           child: FlutterMap(
                             mapController: _mapController,
                             options: MapOptions(
-                              initialCenter: _initialCenter,
-                              initialZoom: 14,
+                              initialCenter: _currentCenter,
+                              initialZoom: widget.initialZoom ?? 14,
                               onTap: (tapPos, latlng) {
                                 if (_movingIndex != null) {
                                   _setMovedVertex(latlng);
@@ -182,6 +223,19 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
                                 urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                                 userAgentPackageName: 'dev.meuapp.guia_turistico',
                               ),
+                              if (_userLocation != null)
+                                MarkerLayer(markers:[
+                                  Marker(
+                                    point: _userLocation!,
+                                    width: 28,
+                                    height: 28,
+                                    child: Container(
+                                      decoration: BoxDecoration(color: Colors.blue.withOpacity(0.15), shape: BoxShape.circle),
+                                      alignment: Alignment.center,
+                                      child: const Icon(Icons.circle, size: 12, color: Colors.blue),
+                                    ),
+                                  ),
+                                ]),
                               if (_vertices.length >= 2)
                                 PolygonLayer(
                                   polygons: [
@@ -226,6 +280,21 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
                           ),
                         ),
                       ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: _locating ? null : _getUserLocation,
+                            icon: _locating ? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.my_location),
+                            label: Text('my_location'.tr()),
+                          ),
+                        ],
+                      ),
+                      if (_permissionDenied)
+                        Padding(
+                          padding: const EdgeInsets.only(top:8.0),
+                          child: Text('error_location_permission_denied'.tr(), style: TextStyle(color: Theme.of(context).colorScheme.error)),
+                        ),
                       const SizedBox(height: 12),
                       if (_vertices.length < 3)
                         Text('min_vertices_warning'.tr(), style: TextStyle(color: Theme.of(context).colorScheme.error)),

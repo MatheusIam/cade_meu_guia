@@ -17,7 +17,7 @@ class AppThemes {
       useMaterial3: true,
       colorScheme: scheme,
       textTheme: textTheme,
-      scaffoldBackgroundColor: scheme.background.withValues(alpha: 0.98),
+      scaffoldBackgroundColor: scheme.surface.withValues(alpha: 0.98),
       appBarTheme: AppBarTheme(
   backgroundColor: scheme.surface,
   foregroundColor: scheme.onSurface,
@@ -41,7 +41,7 @@ class AppThemes {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceVariant.withValues(alpha: 0.3),
+        fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.outline.withValues(alpha:0.3))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.primary, width: 2)),
       ),
@@ -55,7 +55,7 @@ class AppThemes {
       useMaterial3: true,
       colorScheme: scheme,
       textTheme: textTheme,
-      scaffoldBackgroundColor: scheme.background,
+      scaffoldBackgroundColor: scheme.surface,
       appBarTheme: AppBarTheme(
         backgroundColor: scheme.surfaceContainerHighest,
         foregroundColor: scheme.onSurface,
@@ -77,7 +77,7 @@ class AppThemes {
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: scheme.surfaceVariant.withValues(alpha: 0.25),
+        fillColor: scheme.surfaceContainerHighest.withValues(alpha: 0.25),
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.outline.withValues(alpha:0.3))),
         focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide(color: scheme.primary, width: 2)),
       ),
