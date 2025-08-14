@@ -4,7 +4,7 @@ import 'package:flutter/services.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
-import 'edit_area_screen.dart';
+import 'manage_area_screen.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/ratings_provider.dart';
 import 'manage_tour_point_screen.dart';
@@ -279,7 +279,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                     onPressed: () async {
                       final updated = await Navigator.of(context).push(
                         MaterialPageRoute(
-                          builder: (_) => EditAreaScreen(area: widget.tourPoint),
+                          builder: (_) => ManageAreaScreen(existing: widget.tourPoint),
                         ),
                       );
                       if (updated is TourPoint && mounted) {
@@ -297,7 +297,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                       final updated = await Navigator.of(context).push(
                         MaterialPageRoute(
                           builder: (_) => ManageTourPointScreen(
-                            existing: widget.tourPoint,
+                            tourPoint: widget.tourPoint,
                             initialCenter: widget.tourPoint.location,
                             initialZoom: 16,
                           ),

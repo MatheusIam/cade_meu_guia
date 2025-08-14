@@ -3,18 +3,25 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:uuid/uuid.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:geolocator/geolocator.dart';
-import '../utils/permission_helper.dart';
-import '../models/tour_point.dart';
-import '../providers/tour_points_provider.dart';
 import 'package:provider/provider.dart';
+import '../models/tour_point.dart';
+import '../presentation/map_bloc/map_bloc.dart';
 import '../domain/repositories/itour_point_repository.dart';
 
+/// Tela unificada para criar e editar um ponto turístico.
 class ManageTourPointScreen extends StatefulWidget {
-  final TourPoint? existing;
+  final TourPoint? tourPoint;
   final LatLng? initialCenter;
   final double? initialZoom;
-  const ManageTourPointScreen({super.key, this.existing, this.initialCenter, this.initialZoom});
+
+  const ManageTourPointScreen({
+    super.key,
+    this.tourPoint,
+    this.initialCenter,
+    this.initialZoom,
+  });
+
+  bool get isEditMode => tourPoint != null;
 
   @override
   State<ManageTourPointScreen> createState() => _ManageTourPointScreenState();
@@ -28,107 +35,24 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
   late final TextEditingController _latCtrl;
   late final TextEditingController _lngCtrl;
   late final TextEditingController _photosCtrl;
+  
   final MapController _mapController = MapController();
-
-  double _rating = 0.0;
-  String _activityType = 'hiking';
+  late LatLng _currentLocation;
   bool _saving = false;
-  late LatLng _current;
-  LatLng? _userLocation;
-  bool _locating = false;
-  bool _permissionDenied = false;
-  List<TourPoint> _areas = [];
-  bool _loadingAreas = true;
-
-  bool get isEdit => widget.existing != null;
-
-  final List<String> _activityTypes = const [
-    'hiking', 'contemplation', 'adventure', 'cultural'
-  ];
 
   @override
   void initState() {
     super.initState();
-    final e = widget.existing;
-    _nameCtrl = TextEditingController(text: e?.name ?? '');
-    _titleCtrl = TextEditingController(text: e?.title ?? '');
-    _descCtrl = TextEditingController(text: e?.description ?? '');
-    _latCtrl = TextEditingController();
-    _lngCtrl = TextEditingController();
-    _photosCtrl = TextEditingController(text: e?.photoCount.toString() ?? '0');
-    _rating = e?.rating ?? 0.0;
-    _activityType = _mapActivityTypeToKey(e?.activityType ?? 'hiking');
-  _current = widget.initialCenter ?? e?.location ?? LatLng(2.8235, -60.6758);
-    _latCtrl.text = _current.latitude.toStringAsFixed(6);
-    _lngCtrl.text = _current.longitude.toStringAsFixed(6);
-    WidgetsBinding.instance.addPostFrameCallback((_) async {
-      await _loadAreas();
-      await _getUserLocation(showOnMapOnly: true); // só mostra círculo se disponível
-    });
-  }
+    final existingPoint = widget.tourPoint;
 
-  String _mapActivityTypeToKey(String activityType) {
-    switch (activityType) {
-      case 'Caminhada':
-        return 'hiking';
-      case 'Contemplação':
-        return 'contemplation';
-      case 'Aventura':
-        return 'adventure';
-      case 'Cultural':
-        return 'cultural';
-      default:
-        return activityType; // assume already english key
-    }
-  }
-
-  Future<void> _getUserLocation({bool showOnMapOnly = false}) async {
-    final allowed = await PermissionHelper.ensurePreciseLocationPermission(context);
-    if (!allowed) return;
-    setState(() { _locating = true; _permissionDenied = false; });
-    try {
-      LocationPermission perm = await Geolocator.checkPermission();
-      if (perm == LocationPermission.denied) {
-        perm = await Geolocator.requestPermission();
-      }
-      if (perm == LocationPermission.denied || perm == LocationPermission.deniedForever) {
-        setState(() { _permissionDenied = true; });
-        return;
-      }
-      final pos = await Geolocator.getCurrentPosition();
-      final latlng = LatLng(pos.latitude, pos.longitude);
-      setState(() {
-        if(!showOnMapOnly){
-          _current = latlng;
-          _mapController.move(latlng, widget.initialZoom ?? 16);
-          _latCtrl.text = latlng.latitude.toStringAsFixed(6);
-          _lngCtrl.text = latlng.longitude.toStringAsFixed(6);
-        }
-        _userLocation = latlng;
-      });
-    } catch (_) {
-      // ignore
-    } finally {
-      if (mounted) setState(() { _locating = false; });
-    }
-  }
-
-  Future<void> _loadAreas() async {
-    try {
-      setState(() => _loadingAreas = true);
-  // Sempre usa o repositório de domínio
-  final repo = context.read<ITourPointRepository>();
-  final list = await repo.getMain();
-      setState(() {
-        _areas = list.where((a) => a.isArea && (a.polygon?.length ?? 0) >= 3).toList();
-      });
-    } catch (e) {
-      debugPrint("Erro ao carregar áreas: $e");
-    } finally {
-      if (mounted) {
-        setState(() => _loadingAreas = false);
-      }
-    }
+    _nameCtrl = TextEditingController(text: existingPoint?.name ?? '');
+    _titleCtrl = TextEditingController(text: existingPoint?.title ?? '');
+    _descCtrl = TextEditingController(text: existingPoint?.description ?? '');
+    _photosCtrl = TextEditingController(text: existingPoint?.photoCount.toString() ?? '0');
+    
+    _currentLocation = widget.initialCenter ?? existingPoint?.location ?? const LatLng(2.8235, -60.6758);
+    _latCtrl = TextEditingController(text: _currentLocation.latitude.toStringAsFixed(6));
+    _lngCtrl = TextEditingController(text: _currentLocation.longitude.toStringAsFixed(6));
   }
 
   @override
@@ -145,37 +69,52 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
   Future<void> _save() async {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
-    final id = widget.existing?.id ?? const Uuid().v4();
-    final lat = double.tryParse(_latCtrl.text) ?? 0.0;
-    final lng = double.tryParse(_lngCtrl.text) ?? 0.0;
-    final photos = int.tryParse(_photosCtrl.text) ?? 0;
-    final activityPt = _mapKeyToPt(_activityType);
-    final point = TourPoint(
-      id: id,
-      name: _nameCtrl.text.trim(),
-      title: _titleCtrl.text.trim(),
-      description: _descCtrl.text.trim(),
-      location: LatLng(lat, lng),
-      rating: _rating,
-      photoCount: photos,
-      activityType: activityPt,
-      images: widget.existing?.images ?? const [],
-    );
+
+    final repo = context.read<ITourPointRepository>();
+
     try {
-      final tp = context.read<TourPointsProvider>();
-      if (isEdit) {
-        await tp.updatePoint(point);
+      final id = widget.tourPoint?.id ?? const Uuid().v4();
+      final point = TourPoint(
+        id: id,
+        name: _nameCtrl.text.trim(),
+        title: _titleCtrl.text.trim(),
+        description: _descCtrl.text.trim(),
+        location: _currentLocation,
+        rating: widget.tourPoint?.rating ?? 0.0,
+        photoCount: int.tryParse(_photosCtrl.text) ?? 0,
+        activityType: widget.tourPoint?.activityType ?? 'Cultural', // Mantém tipo existente ou usa um padrão
+        images: widget.tourPoint?.images ?? [],
+      );
+
+      if (widget.isEditMode) {
+        await repo.update(point);
       } else {
-        await tp.addPoint(point);
+        await repo.add(point);
       }
-      if (mounted) Navigator.pop(context, point);
+      
+      if (mounted) {
+        context.read<MapBloc>().add(LoadMapData()); // Força a atualização da lista na HomeScreen
+        Navigator.pop(context, point);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(widget.isEditMode ? 'tour_point_updated'.tr() : 'tour_point_added'.tr())),
+        );
+      }
+    } catch (e) {
+      if(mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('error_saving'.tr()), backgroundColor: Colors.red),
+        );
+      }
     } finally {
-      if (mounted) setState(() => _saving = false);
+      if (mounted) {
+        setState(() => _saving = false);
+      }
     }
   }
-
+  
   Future<void> _delete() async {
-    if (!isEdit) return;
+    if (!widget.isEditMode) return;
+
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -183,29 +122,23 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
         content: Text('delete_point_question'.tr()),
         actions: [
           TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('cancel'.tr())),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: Text('delete'.tr())),
+          FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('delete'.tr())),
         ],
       ),
     );
-    if (confirm != true) return;
-  setState(() => _saving = true);
-  final tp = context.read<TourPointsProvider>();
-  await tp.deletePoint(widget.existing!.id);
-    if (mounted) Navigator.pop(context, true);
-  }
 
-  String _mapKeyToPt(String key) {
-    switch (key) {
-      case 'hiking':
-        return 'Caminhada';
-      case 'contemplation':
-        return 'Contemplação';
-      case 'adventure':
-        return 'Aventura';
-      case 'cultural':
-        return 'Cultural';
-      default:
-        return key;
+    if (confirm != true || !mounted) return;
+    
+    setState(() => _saving = true);
+    final repo = context.read<ITourPointRepository>();
+    try {
+      await repo.delete(widget.tourPoint!.id);
+      if (mounted) {
+        context.read<MapBloc>().add(LoadMapData());
+        Navigator.pop(context, true); // Retorna true para indicar exclusão
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
     }
   }
 
@@ -213,40 +146,40 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(isEdit ? 'edit_point'.tr() : 'new_point'.tr()),
+        title: Text(widget.isEditMode ? 'edit_point'.tr() : 'new_tour_point'.tr()),
         actions: [
-          if (isEdit)
+          if (widget.isEditMode)
             IconButton(
-              icon: const Icon(Icons.delete),
+              icon: const Icon(Icons.delete_outline),
+              tooltip: 'delete'.tr(),
               onPressed: _saving ? null : _delete,
-              tooltip: 'tooltip_delete'.tr(),
             ),
         ],
       ),
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 24.0),
           children: [
             TextFormField(
               controller: _nameCtrl,
               decoration: InputDecoration(labelText: 'short_name'.tr()),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'validation_enter_name'.tr() : null,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'enter_name'.tr() : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             TextFormField(
               controller: _titleCtrl,
               decoration: InputDecoration(labelText: 'title_label'.tr()),
-              validator: (v) => (v == null || v.trim().isEmpty) ? 'validation_enter_title'.tr() : null,
+              validator: (v) => (v == null || v.trim().isEmpty) ? 'enter_title'.tr() : null,
             ),
-            const SizedBox(height: 12),
-            TextFormField(
+            const SizedBox(height: 16),
+             TextFormField(
               controller: _descCtrl,
               decoration: InputDecoration(labelText: 'description_label'.tr()),
               maxLines: 4,
-              validator: (v) => (v == null || v.trim().length < 10) ? 'validation_desc_too_short'.tr() : null,
+              validator: (v) => (v == null || v.trim().length < 10) ? 'description_too_short'.tr() : null,
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 16),
             Text('location'.tr(), style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 8),
             SizedBox(
@@ -258,15 +191,16 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                     FlutterMap(
                       mapController: _mapController,
                       options: MapOptions(
-                        initialCenter: _current,
-                        initialZoom: 14,
-                        onPositionChanged: (pos, _) {
-                          final c = pos.center;
-                          setState(() {
-                            _current = c;
-                            _latCtrl.text = c.latitude.toStringAsFixed(6);
-                            _lngCtrl.text = c.longitude.toStringAsFixed(6);
-                          });
+                        initialCenter: _currentLocation,
+                        initialZoom: widget.initialZoom ?? 15,
+                        onPositionChanged: (position, hasGesture) {
+                          if (hasGesture) {
+                            setState(() {
+                              _currentLocation = position.center;
+                              _latCtrl.text = _currentLocation.latitude.toStringAsFixed(6);
+                              _lngCtrl.text = _currentLocation.longitude.toStringAsFixed(6);
+                            });
+                          }
                         },
                       ),
                       children: [
@@ -274,179 +208,18 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                           userAgentPackageName: 'dev.meuapp.guia_turistico',
                         ),
-                        if (_areas.isNotEmpty)
-                          PolygonLayer(
-                            polygons: [
-                              for (final area in _areas)
-                                Polygon(
-                                  points: area.polygon!,
-                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
-                                  borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35),
-                                  borderStrokeWidth: 2,
-                                ),
-                            ],
-                          ),
-                        if (_userLocation != null)
-                          MarkerLayer(markers: [
-                            Marker(
-                              point: _userLocation!,
-                              width: 28,
-                              height: 28,
-                              child: Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.blue.withValues(alpha: 0.15),
-                                  shape: BoxShape.circle,
-                                ),
-                                alignment: Alignment.center,
-                                child: const Icon(Icons.circle, size: 12, color: Colors.blue),
-                              ),
-                            ),
-                          ]),
                       ],
                     ),
-                    if (_loadingAreas)
-                      Positioned(
-                        bottom: 8,
-                        left: 8,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const [
-                              SizedBox(width:14,height:14,child:CircularProgressIndicator(strokeWidth:2,color:Colors.white)),
-                              SizedBox(width:6),
-                              Text('Loading areas...', style: TextStyle(color: Colors.white, fontSize: 12)),
-                            ],
-                          ),
-                        ),
-                      ),
-                    const Center(child: Icon(Icons.location_pin, size: 46, color: Colors.red)),
-                    Positioned(
-                      left: 8,
-                      top: 8,
-                      child: Container(
-                        width: 70,
-                        height: 70,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.white, width: 2),
-                          shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
-                        ),
-                        clipBehavior: Clip.antiAlias,
-                        child: FlutterMap(
-                          mapController: MapController(),
-                          options: MapOptions(initialCenter: _current, initialZoom: 17),
-                          children: [
-                            TileLayer(
-                              urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                              userAgentPackageName: 'dev.meuapp.guia_turistico',
-                            ),
-                            MarkerLayer(markers:[
-                              Marker(point: _current, width: 20, height: 20, child: const Icon(Icons.location_pin, size: 20, color: Colors.red)),
-                              if (_userLocation != null)
-                                Marker(point: _userLocation!, width: 16, height: 16, child: const Icon(Icons.circle, size: 16, color: Colors.blue)),
-                            ])
-                          ],
-                        ),
-                      ),
-                    ),
-                    Positioned(
-                      right: 8,
-                      top: 8,
-                      child: Column(children:[
-                        FloatingActionButton.small(
-                          heroTag: 'manage_locate',
-                          onPressed: _locating ? null : _getUserLocation,
-                          child: _locating ? const SizedBox(width:16,height:16,child:CircularProgressIndicator(strokeWidth:2)) : const Icon(Icons.my_location),
-                        ),
-                        const SizedBox(height: 8),
-                        FloatingActionButton.small(
-                          heroTag: 'manage_zoom_in',
-                          onPressed: () => _mapController.move(_current, _mapController.camera.zoom + 1),
-                          child: const Icon(Icons.add),
-                        ),
-                        const SizedBox(height: 8),
-                        FloatingActionButton.small(
-                          heroTag: 'manage_zoom_out',
-                          onPressed: () => _mapController.move(_current, _mapController.camera.zoom - 1),
-                          child: const Icon(Icons.remove),
-                        ),
-                      ]),
-                    ),
-                    if (_permissionDenied)
-                      Positioned(
-                        bottom: 8,
-                        left: 8,
-                        right: 8,
-                        child: Material(
-                          color: Colors.redAccent,
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Text('error_location_permission_denied'.tr(), style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: Colors.white)),
-                          ),
-                        ),
-                      ),
+                    const Center(child: Icon(Icons.location_pin, size: 40, color: Colors.red)),
                   ],
                 ),
               ),
             ),
-            const SizedBox(height: 8),
-            Row(children:[
-              Expanded(child: TextFormField(
-                controller: _latCtrl,
-                decoration: InputDecoration(labelText: 'latitude'.tr()),
-                readOnly: true,
-              )),
-              const SizedBox(width: 12),
-              Expanded(child: TextFormField(
-                controller: _lngCtrl,
-                decoration: InputDecoration(labelText: 'longitude'.tr()),
-                readOnly: true,
-              )),
-              IconButton(
-                icon: const Icon(Icons.my_location),
-                onPressed: () => _mapController.move(_current, _mapController.camera.zoom),
-                tooltip: 'tooltip_center'.tr(),
-              )
-            ]),
-            const SizedBox(height: 12),
-            DropdownButtonFormField<String>(
-              value: _activityType,
-              decoration: InputDecoration(labelText: 'activity_type'.tr()),
-              items: _activityTypes
-                  .map((t) => DropdownMenuItem(value: t, child: Text(t.tr())))
-                  .toList(),
-              onChanged: (v) => setState(() => _activityType = v ?? _activityType),
-            ),
-            const SizedBox(height: 12),
-            Text('${'initial_rating'.tr()}: ${_rating.toStringAsFixed(1)}'),
-            Slider(
-              value: _rating,
-              min: 0,
-              max: 5,
-              divisions: 50,
-              label: _rating.toStringAsFixed(1),
-              onChanged: (val) => setState(() => _rating = val),
-            ),
-            const SizedBox(height: 12),
-            TextFormField(
-              controller: _photosCtrl,
-              decoration: InputDecoration(labelText: 'photos_quantity_hint'.tr()),
-              keyboardType: TextInputType.number,
-              validator: (v) => (int.tryParse(v ?? '') == null) ? 'validation_invalid'.tr() : null,
-            ),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: _saving ? null : _save,
-              icon: _saving
-                  ? const SizedBox(width:16,height:16,child: CircularProgressIndicator(strokeWidth:2))
-                  : const Icon(Icons.save),
-              label: Text(_saving ? 'saving'.tr() : (isEdit ? 'save_changes'.tr() : 'create'.tr())),
+              icon: _saving ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2)) : const Icon(Icons.save),
+              label: Text(widget.isEditMode ? 'save_changes'.tr() : 'create_point'.tr()),
             ),
           ],
         ),
@@ -454,4 +227,4 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
     );
   }
 }
- 
+

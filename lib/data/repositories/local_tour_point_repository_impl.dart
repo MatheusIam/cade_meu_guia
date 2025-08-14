@@ -49,4 +49,9 @@ class LocalTourPointRepositoryImpl implements ITourPointRepository {
   Future<TourPoint?> getParent(String childId) async {
     return TourPointsData.getParentPoint(childId);
   }
+
+  @override
+  bool isCustom(String id) {
+    return TourPointsData.isCustomPoint(id);
+  }
 }

@@ -1,4 +1,4 @@
-import 'edit_area_screen.dart';
+import 'manage_area_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter_map/flutter_map.dart';
@@ -14,7 +14,6 @@ import 'tour_point_screen.dart';
 import '../providers/favorites_provider.dart';
 import 'settings_screen.dart';
 import 'manage_tour_point_screen.dart';
-import 'add_area_screen.dart';
 import '../providers/ratings_provider.dart';
 
 /// Tela inicial com mapa principal e navegação
@@ -947,7 +946,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onLongPress: () async {
                           final updated = await Navigator.of(context).push(
                             MaterialPageRoute(
-                              builder: (_) => EditAreaScreen(area: p),
+                              builder: (_) => ManageAreaScreen(existing: p),
                             ),
                           );
                           if (updated is TourPoint) {
@@ -1134,7 +1133,7 @@ class _HomeScreenState extends State<HomeScreen> {
     if (choice == 'area') {
   final result = await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => AddAreaScreen(
+          builder: (_) => ManageAreaScreen(
             initialCenter: _mapController.camera.center,
             initialZoom: _mapController.camera.zoom,
           ),

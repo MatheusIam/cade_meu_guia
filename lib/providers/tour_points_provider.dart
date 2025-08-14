@@ -3,7 +3,6 @@ import 'package:latlong2/latlong.dart';
 
 import '../models/tour_point.dart';
 import '../domain/repositories/itour_point_repository.dart';
-import '../data/tour_points_data.dart';
 
 /// Provider reativo para pontos turísticos, centralizando acesso via repositório
 class TourPointsProvider with ChangeNotifier {
@@ -69,7 +68,7 @@ class TourPointsProvider with ChangeNotifier {
     return getById(child.parentId!);
   }
 
-  bool isCustom(String id) => TourPointsData.isCustomPoint(id);
+  bool isCustom(String id) => _repo.isCustom(id);
 
   List<TourPoint> nearby(LatLng location, double radiusKm) {
     const distance = Distance();

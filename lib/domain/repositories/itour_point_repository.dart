@@ -12,4 +12,6 @@ abstract class ITourPointRepository {
   Future<List<TourPoint>> getChildren(String parentId);
   Future<List<TourPoint>> getMain();
   Future<TourPoint?> getParent(String childId);
+  // True if the id belongs to a user-created (custom) point
+  bool isCustom(String id);
 }
