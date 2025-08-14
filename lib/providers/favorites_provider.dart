@@ -4,6 +4,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Provider para gerenciar APENAS os IDs dos pontos turísticos favoritos.
 /// A lógica de buscar os dados completos foi movida para um Caso de Uso (GetFavoriteTourPoints).
 class FavoritesProvider with ChangeNotifier {
+  // A chave de persistência agora reside aqui, no seu contexto de uso.
+  static const String _favoritesKey = 'favorite_tour_points';
   final List<String> _favoriteIds = [];
   bool _isLoaded = false;
 
@@ -17,7 +19,7 @@ class FavoritesProvider with ChangeNotifier {
     if (_isLoaded) return;
     try {
       final prefs = await SharedPreferences.getInstance();
-      final savedFavorites = prefs.getStringList('favorite_tour_points') ?? [];
+  final savedFavorites = prefs.getStringList(_favoritesKey) ?? [];
       _favoriteIds.clear();
       _favoriteIds.addAll(savedFavorites);
     } catch (e) {
@@ -32,7 +34,7 @@ class FavoritesProvider with ChangeNotifier {
   Future<void> _saveFavorites() async {
     try {
       final prefs = await SharedPreferences.getInstance();
-      await prefs.setStringList('favorite_tour_points', _favoriteIds);
+  await prefs.setStringList(_favoritesKey, _favoriteIds);
     } catch (e) {
       debugPrint('Erro ao salvar favoritos: $e');
     }
