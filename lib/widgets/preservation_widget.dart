@@ -1,7 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import '../models/preservation_tip.dart';
-import '../data/preservation_data.dart';
+import 'package:provider/provider.dart';
+import '../domain/repositories/ipreservation_repository.dart';
 import '../screens/all_preservation_tips_screen.dart';
 
 class PreservationWidget extends StatefulWidget {
@@ -30,20 +31,23 @@ class _PreservationWidgetState extends State<PreservationWidget> {
   }
 
   Future<List<PreservationTip>> _initialLoad() {
+    final repo = context.read<IPreservationRepository>();
     if (widget.activityType != null && !widget.showAllTips) {
-      return PreservationData.getTipsForActivity(widget.activityType!);
+      return repo.getTipsForActivity(widget.activityType!);
     } else {
-      return PreservationData.getTipsByPriority();
+      // Não há método específico por prioridade na interface; use getAllTips()
+      return repo.getAllTips();
     }
   }
 
   void _filterByType(PreservationType? type) {
     setState(() {
       _selectedType = type;
+      final repo = context.read<IPreservationRepository>();
       if (type == null) {
-        _futureTips = PreservationData.getTipsByPriority();
+        _futureTips = repo.getAllTips();
       } else {
-        _futureTips = PreservationData.getTipsByType(type);
+        _futureTips = repo.getTipsByType(type);
       }
     });
   }
@@ -54,20 +58,21 @@ class _PreservationWidgetState extends State<PreservationWidget> {
     final currentLocale = context.locale; // easy_localization
     if (_lastLocale != currentLocale) {
       _lastLocale = currentLocale;
-      // Invalida cache e recarrega dados na mudança de idioma
-      PreservationData.invalidate();
-      _futureTips = _rebuildFutureForCurrentFilter();
+  // Invalida cache e recarrega dados na mudança de idioma
+  context.read<IPreservationRepository>().invalidateCache();
+  _futureTips = _rebuildFutureForCurrentFilter();
     }
   }
 
   Future<List<PreservationTip>> _rebuildFutureForCurrentFilter() {
+    final repo = context.read<IPreservationRepository>();
     if (widget.activityType != null && !widget.showAllTips) {
-      return PreservationData.getTipsForActivity(widget.activityType!);
+      return repo.getTipsForActivity(widget.activityType!);
     }
     if (_selectedType != null) {
-      return PreservationData.getTipsByType(_selectedType!);
+      return repo.getTipsByType(_selectedType!);
     }
-    return PreservationData.getTipsByPriority();
+    return repo.getAllTips();
   }
 
   @override

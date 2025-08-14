@@ -6,10 +6,9 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/permission_helper.dart';
 import '../models/tour_point.dart';
-import '../data/tour_points_data.dart';
 import '../providers/tour_points_provider.dart';
 import 'package:provider/provider.dart';
-import '../repositories/tour_point_repository.dart';
+import '../domain/repositories/itour_point_repository.dart';
 
 class ManageTourPointScreen extends StatefulWidget {
   final TourPoint? existing;
@@ -117,15 +116,9 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
   Future<void> _loadAreas() async {
     try {
       setState(() => _loadingAreas = true);
-      // Usar repositório se disponível via provider
-      ITourPointRepository? repo;
-      try { repo = context.read<ITourPointRepository>(); } catch (_) {}
-      List<TourPoint> list;
-      if (repo != null) {
-        list = await repo.getMain();
-      } else {
-        list = await TourPointsData.getAllTourPoints();
-      }
+  // Sempre usa o repositório de domínio
+  final repo = context.read<ITourPointRepository>();
+  final list = await repo.getMain();
       setState(() {
         _areas = list.where((a) => a.isArea && (a.polygon?.length ?? 0) >= 3).toList();
       });

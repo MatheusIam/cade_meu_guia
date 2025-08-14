@@ -7,7 +7,7 @@ import '../utils/permission_helper.dart';
 import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
-import '../repositories/tour_point_repository.dart';
+import '../domain/repositories/itour_point_repository.dart';
 import '../providers/tour_points_provider.dart';
 
 class AddAreaScreen extends StatefulWidget {

@@ -2,7 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:latlong2/latlong.dart';
 
 import '../models/tour_point.dart';
-import '../repositories/tour_point_repository.dart';
+import '../domain/repositories/itour_point_repository.dart';
 import '../data/tour_points_data.dart';
 
 /// Provider reativo para pontos turísticos, centralizando acesso via repositório

@@ -435,7 +435,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               color: isFav ? Colors.red : Theme.of(context).iconTheme.color,
                             ),
                             onPressed: () async {
-                              await favoritesProvider.toggleFavorite(point);
+                              await favoritesProvider.toggleFavorite(point.id);
                             },
                             tooltip: isFav ? 'remove_from_favorites'.tr() : 'add_to_favorites'.tr(),
                           ),
@@ -814,7 +814,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                       color: isFav ? Colors.red : null,
                                       tooltip: isFav ? 'remove_from_favorites'.tr() : 'add_to_favorites'.tr(),
                                       onTap: () async {
-                                        await favoritesProvider.toggleFavorite(point);
+                                        await favoritesProvider.toggleFavorite(point.id);
                                       },
                                     ),
                                   ],

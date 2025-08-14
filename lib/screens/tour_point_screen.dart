@@ -51,7 +51,7 @@ class _TourPointScreenState extends State<TourPointScreen>
   void _toggleFavorite() async {
     HapticFeedback.lightImpact();
     final favoritesProvider = context.read<FavoritesProvider>();
-    await favoritesProvider.toggleFavorite(widget.tourPoint);
+  await favoritesProvider.toggleFavorite(widget.tourPoint.id);
     
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(

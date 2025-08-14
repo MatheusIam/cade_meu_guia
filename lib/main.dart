@@ -6,9 +6,11 @@ import 'providers/favorites_provider.dart';
 import 'providers/ratings_provider.dart';
 import 'themes/app_themes.dart';
 import 'screens/home_screen.dart';
-import 'repositories/tour_point_repository.dart';
-import 'repositories/local_tour_point_repository.dart';
+import 'domain/repositories/itour_point_repository.dart';
+import 'data/repositories/local_tour_point_repository_impl.dart';
 import 'providers/tour_points_provider.dart';
+import 'domain/repositories/ipreservation_repository.dart';
+import 'data/repositories/preservation_repository_impl.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,7 +25,8 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (context) => ThemeProvider()),
           ChangeNotifierProvider(create: (context) => FavoritesProvider()),
           ChangeNotifierProvider(create: (context) => RatingsProvider()),
-          Provider<ITourPointRepository>(create: (_) => LocalTourPointRepository()),
+          Provider<ITourPointRepository>(create: (_) => LocalTourPointRepositoryImpl()),
+          Provider<IPreservationRepository>(create: (_) => PreservationRepositoryImpl()),
           ChangeNotifierProvider(
             create: (context) => TourPointsProvider(
               context.read<ITourPointRepository>(),
