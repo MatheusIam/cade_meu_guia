@@ -1,7 +1,7 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:sqflite/sqflite.dart';
 import '../models/tour_point_rating.dart';
+import '../data/datasources/local/database_helper.dart';
 
 /// Provider para gerenciar avaliações de pontos turísticos
 class RatingsProvider with ChangeNotifier {
@@ -18,30 +18,19 @@ class RatingsProvider with ChangeNotifier {
   /// Carrega as avaliações salvas localmente
   Future<void> loadRatings() async {
     if (_isLoaded) return;
-    
     try {
-      final prefs = await SharedPreferences.getInstance();
-  final ratingsJson = prefs.getStringList('tour_point_ratings') ?? [];
-  final visitedIds = prefs.getStringList('visited_tour_points') ?? [];
-      
-      _ratings.clear();
-      for (final ratingStr in ratingsJson) {
-        try {
-          final ratingMap = jsonDecode(ratingStr);
-          final rating = TourPointRating.fromJson(ratingMap);
-          _ratings.add(rating);
-        } catch (e) {
-          debugPrint('Erro ao carregar avaliação: $e');
-        }
-      }
+      final db = await DatabaseHelper.instance.database;
+      final list = await db.query('ratings');
+      _ratings
+        ..clear()
+        ..addAll(list.map((row) => TourPointRating.fromJson(row)).toList());
+      final visited = await db.query('visited_points');
       _visitedTourPoints
         ..clear()
-        ..addAll(visitedIds);
-      
-      _isLoaded = true;
-      notifyListeners();
+        ..addAll(visited.map((row) => row['tourPointId'] as String));
     } catch (e) {
-      debugPrint('Erro ao carregar avaliações: $e');
+      debugPrint('Erro ao carregar avaliações do DB: $e');
+    } finally {
       _isLoaded = true;
       notifyListeners();
     }
@@ -50,14 +39,24 @@ class RatingsProvider with ChangeNotifier {
   /// Salva as avaliações localmente
   Future<void> _saveRatings() async {
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final ratingsJson = _ratings
-          .map((rating) => jsonEncode(rating.toJson()))
-          .toList();
-      await prefs.setStringList('tour_point_ratings', ratingsJson);
-  await prefs.setStringList('visited_tour_points', _visitedTourPoints.toList());
+      final db = await DatabaseHelper.instance.database;
+      // Reescreve todas as avaliações (simples e suficiente para escala atual)
+      final batch = db.batch();
+      batch.delete('ratings');
+      for (final r in _ratings) {
+        batch.insert('ratings', r.toJson(), conflictAlgorithm: ConflictAlgorithm.replace);
+      }
+      await batch.commit(noResult: true);
+
+      // Atualiza visitas
+      final b2 = db.batch();
+      b2.delete('visited_points');
+      for (final id in _visitedTourPoints) {
+        b2.insert('visited_points', {'tourPointId': id}, conflictAlgorithm: ConflictAlgorithm.ignore);
+      }
+      await b2.commit(noResult: true);
     } catch (e) {
-      debugPrint('Erro ao salvar avaliações: $e');
+      debugPrint('Erro ao salvar avaliações no DB: $e');
     }
   }
 
@@ -76,8 +75,8 @@ class RatingsProvider with ChangeNotifier {
 
   /// Remove uma avaliação
   Future<void> removeRating(String ratingId) async {
-    _ratings.removeWhere((rating) => rating.id == ratingId);
-    await _saveRatings();
+  _ratings.removeWhere((rating) => rating.id == ratingId);
+  await _saveRatings();
     notifyListeners();
   }
 

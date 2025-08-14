@@ -1,19 +1,23 @@
 import 'dart:convert';
-import 'package:flutter/services.dart' show rootBundle;
+import 'package:http/http.dart' as http;
 import 'language_remote_datasource.dart';
 
-/// Implementação mock que lê o pacote de idioma dos assets locais.
-/// Substitua por uma chamada HTTP real quando houver backend.
+/// Implementação que busca o pacote de idioma de um endpoint HTTP.
+/// ATENÇÃO: _baseUrl é exemplo; substitua pela URL real do backend.
 class LanguageRemoteDataSourceImpl implements LanguageRemoteDataSource {
+  final String _baseUrl = 'https://api.example.com/translations';
+
   @override
   Future<Map<String, dynamic>> fetchLanguagePack(String languageCode) async {
-    final assetPath = 'assets/translations/$languageCode.json';
+    final uri = Uri.parse('$_baseUrl/$languageCode.json');
     try {
-      final raw = await rootBundle.loadString(assetPath);
-      final map = jsonDecode(raw) as Map<String, dynamic>;
-      return map;
+      final res = await http.get(uri, headers: {'Accept': 'application/json'});
+      if (res.statusCode == 200) {
+        return jsonDecode(res.body) as Map<String, dynamic>;
+      }
+      throw Exception('HTTP ${res.statusCode}: ${res.reasonPhrase}');
     } catch (e) {
-      throw Exception('Falha ao carregar pacote de idioma mock: $e');
+      throw Exception('Falha ao buscar pacote de idioma: $e');
     }
   }
 }

@@ -254,17 +254,15 @@ class TourPointsData {
     return List.unmodifiable([..._tourPoints, ..._customTourPoints]);
   }
 
-  // DEPRECATED: use getAllTourPointsAsync/TourPointsProvider em vez deste método síncrono.
-  // Mantido apenas por compatibilidade temporária; pode não refletir dados mais recentes.
-  static List<TourPoint> getAllTourPoints() {
-    return List.unmodifiable([..._tourPoints, ..._customTourPoints]);
-  }
+  // REMOVIDO: método síncrono público getAllTourPoints() para forçar uso assíncrono.
+  // Helper interno apenas para utilitários síncronos locais (não exportar publicamente).
+  static List<TourPoint> _allSync() => List.unmodifiable([..._tourPoints, ..._customTourPoints]);
 
   /// Busca pontos turísticos por nome ou título
   static List<TourPoint> searchTourPoints(String query) {
-    if (query.isEmpty) return getAllTourPoints();
+    if (query.isEmpty) return _allSync();
 
-  return getAllTourPoints().where((point) {
+  return _allSync().where((point) {
       return point.name.toLowerCase().contains(query.toLowerCase()) ||
           point.title.toLowerCase().contains(query.toLowerCase()) ||
           point.description.toLowerCase().contains(query.toLowerCase());
@@ -273,9 +271,9 @@ class TourPointsData {
 
   /// Filtra pontos turísticos por tipo de atividade
   static List<TourPoint> filterByActivity(String activityType) {
-    if (activityType == 'Todos') return getAllTourPoints();
+    if (activityType == 'Todos') return _allSync();
 
-  return getAllTourPoints().where((point) {
+  return _allSync().where((point) {
       return point.activityType == activityType;
     }).toList();
   }
@@ -284,7 +282,7 @@ class TourPointsData {
   static List<TourPoint> getNearbyTourPoints(LatLng location, double radiusKm) {
     const Distance distance = Distance();
 
-  return getAllTourPoints().where((point) {
+  return _allSync().where((point) {
       double distanceKm = distance.as(
         LengthUnit.Kilometer,
         location,
@@ -297,7 +295,7 @@ class TourPointsData {
   /// Retorna um ponto turístico por ID
   static TourPoint? getTourPointById(String id) {
     try {
-      return getAllTourPoints().firstWhere((point) => point.id == id);
+      return _allSync().firstWhere((point) => point.id == id);
     } catch (e) {
       return null;
     }
@@ -305,21 +303,21 @@ class TourPointsData {
 
   /// Retorna pontos turísticos ordenados por avaliação
   static List<TourPoint> getTourPointsByRating() {
-  List<TourPoint> sortedPoints = List.from(getAllTourPoints());
+  List<TourPoint> sortedPoints = List.from(_allSync());
     sortedPoints.sort((a, b) => b.rating.compareTo(a.rating));
     return sortedPoints;
   }
 
   /// Retorna tipos de atividades únicos
   static List<String> getActivityTypes() {
-  Set<String> types = getAllTourPoints().map((point) => point.activityType).toSet();
+  Set<String> types = _allSync().map((point) => point.activityType).toSet();
     types.add('Todos');
     return types.toList()..sort();
   }
 
   /// Retorna estatísticas dos pontos turísticos
   static Map<String, dynamic> getStatistics() {
-    final all = getAllTourPoints();
+  final all = _allSync();
     if (all.isEmpty) {
       return {
         'totalPoints': 0,
@@ -361,12 +359,12 @@ class TourPointsData {
     final parent = getTourPointById(parentId);
     if (parent == null || parent.childPointIds.isEmpty) return [];
     final ids = parent.childPointIds.toSet();
-    return getAllTourPoints().where((p) => ids.contains(p.id)).toList();
+    return _allSync().where((p) => ids.contains(p.id)).toList();
   }
 
   /// Retorna apenas pontos principais (sem parentId)
   static List<TourPoint> getMainTourPoints() {
-    return getAllTourPoints().where((p) => p.parentId == null).toList();
+    return _allSync().where((p) => p.parentId == null).toList();
   }
 
   /// Retorna o ponto pai (se houver)

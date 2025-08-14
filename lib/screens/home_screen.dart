@@ -324,6 +324,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         );
+                        if (!context.mounted) return;
                         if (confirm == true) {
                           await favoritesProvider.clearAllFavorites();
                         }
@@ -398,6 +399,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             ],
                           ),
                         );
+                        if (!context.mounted) return false;
                         if (confirm == true) {
                           await favoritesProvider.removeFavorite(point.id);
                           if (mounted) {
@@ -926,7 +928,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 .map(
                   (p) => Polygon(
                     points: p.polygon!,
-                    color: Theme.of(context).colorScheme.primary.withOpacity(0.18),
+                    color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.18),
                     borderStrokeWidth: 3,
                     borderColor: Theme.of(context).colorScheme.primary,
                   ),
@@ -959,11 +961,11 @@ class _HomeScreenState extends State<HomeScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                           decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.85),
+                            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.85),
                             borderRadius: BorderRadius.circular(20),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.25),
+                                color: Colors.black.withValues(alpha: 0.25),
                                 blurRadius: 4,
                                 offset: const Offset(0,2),
                               )
@@ -1025,13 +1027,13 @@ class _HomeScreenState extends State<HomeScreen> {
                               end: Alignment.bottomCenter,
                               colors: [
                                 Theme.of(context).colorScheme.primary,
-                                Theme.of(context).colorScheme.primary.withOpacity(0.8),
+                                Theme.of(context).colorScheme.primary.withValues(alpha: 0.8),
                               ],
                             ),
                             border: Border.all(color: Colors.white, width: 2.5),
                             boxShadow: [
                               BoxShadow(
-                                color: Colors.black.withOpacity(0.3),
+                                color: Colors.black.withValues(alpha: 0.3),
                                 blurRadius: 6,
                                 offset: const Offset(0,3),
                               )
@@ -1051,7 +1053,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   height: 36,
                   child: Container(
                     decoration: BoxDecoration(
-                      color: Colors.blue.withOpacity(0.18),
+                      color: Colors.blue.withValues(alpha: 0.18),
                       shape: BoxShape.circle,
                       border: Border.all(color: Colors.blueAccent, width: 2),
                     ),
@@ -1130,7 +1132,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
     if (!mounted || choice == null) return;
     if (choice == 'area') {
-      final result = await Navigator.of(context).push(
+  final result = await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => AddAreaScreen(
             initialCenter: _mapController.camera.center,
@@ -1138,7 +1140,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
-      if (result != null) {
+  if (!mounted) return;
+  if (result != null) {
         final tp = context.read<TourPointsProvider>();
         setState(() {
           _tourPoints = tp.main;
@@ -1146,7 +1149,7 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } else if (choice == 'point') {
-      final result = await Navigator.of(context).push(
+  final result = await Navigator.of(context).push(
         MaterialPageRoute(
           builder: (_) => AddTourPointScreen(
             initialCenter: _mapController.camera.center,
@@ -1154,7 +1157,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
       );
-      if (result != null) {
+  if (!mounted) return;
+  if (result != null) {
         final tp = context.read<TourPointsProvider>();
         setState(() {
           _tourPoints = tp.main;

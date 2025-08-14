@@ -122,8 +122,12 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
       setState(() {
         _areas = list.where((a) => a.isArea && (a.polygon?.length ?? 0) >= 3).toList();
       });
+    } catch (e) {
+      debugPrint("Erro ao carregar áreas: $e");
     } finally {
-      if (mounted) setState(() => _loadingAreas = false);
+      if (mounted) {
+        setState(() => _loadingAreas = false);
+      }
     }
   }
 

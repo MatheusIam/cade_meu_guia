@@ -59,7 +59,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           const SizedBox(height: 32),
           Center(
             child: Text(
-              'app_version'.tr() + ': ' + AppConstants.appVersion,
+              '${'app_version'.tr()}: ${AppConstants.appVersion}',
               style: Theme.of(context).textTheme.bodySmall?.copyWith(color: Theme.of(context).colorScheme.onSurfaceVariant),
             ),
           ),
@@ -369,18 +369,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 child: Text('cancel'.tr()),
           ),
           TextButton(
-            onPressed: () {
-              Provider.of<FavoritesProvider>(context, listen: false)
-                  .clearAllFavorites();
+            onPressed: () async {
+              await Provider.of<FavoritesProvider>(context, listen: false)
+                  .clearFavorites();
+              if (!context.mounted) return;
               Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('all_favorites_removed'.tr()),
-                      duration: const Duration(seconds: 2),
-                    ),
-                  );
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('all_favorites_removed'.tr()),
+                  duration: const Duration(seconds: 2),
+                ),
+              );
             },
-                child: Text('confirm'.tr()),
+            child: Text('confirm'.tr()),
           ),
         ],
       ),
@@ -412,7 +413,7 @@ class _SeedColorSelector extends StatelessWidget {
         for (final color in _palette)
           _ColorChip(
             color: color,
-            selected: color.value == current.value,
+            selected: color.toARGB32() == current.toARGB32(),
             onTap: () => onSelect(color),
           ),
       ],

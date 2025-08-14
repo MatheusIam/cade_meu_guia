@@ -50,6 +50,7 @@ class FavoritesProvider with ChangeNotifier {
     notifyListeners();
   }
 
+  /// Adiciona um ponto aos favoritos
   Future<void> addFavorite(String tourPointId) async {
     if (!isFavorite(tourPointId)) {
       _favoriteIds.add(tourPointId);
@@ -58,6 +59,7 @@ class FavoritesProvider with ChangeNotifier {
     }
   }
 
+  /// Remove um ponto dos favoritos
   Future<void> removeFavorite(String tourPointId) async {
     if (isFavorite(tourPointId)) {
       _favoriteIds.remove(tourPointId);
@@ -66,9 +68,13 @@ class FavoritesProvider with ChangeNotifier {
     }
   }
 
-  Future<void> clearAllFavorites() async {
+  /// Limpa todos os favoritos
+  Future<void> clearFavorites() async {
     _favoriteIds.clear();
     await _saveFavorites();
     notifyListeners();
   }
+
+  /// Compat: método legado usado em algumas telas
+  Future<void> clearAllFavorites() => clearFavorites();
 }
