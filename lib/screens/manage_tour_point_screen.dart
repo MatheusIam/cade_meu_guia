@@ -280,8 +280,8 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                               for (final area in _areas)
                                 Polygon(
                                   points: area.polygon!,
-                                  color: Theme.of(context).colorScheme.primary.withOpacity(0.08),
-                                  borderColor: Theme.of(context).colorScheme.primary.withOpacity(0.35),
+                                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.08),
+                                  borderColor: Theme.of(context).colorScheme.primary.withValues(alpha: 0.35),
                                   borderStrokeWidth: 2,
                                 ),
                             ],
@@ -294,7 +294,7 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                               height: 28,
                               child: Container(
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.withOpacity(0.15),
+                                  color: Colors.blue.withValues(alpha: 0.15),
                                   shape: BoxShape.circle,
                                 ),
                                 alignment: Alignment.center,
@@ -334,7 +334,7 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
                         decoration: BoxDecoration(
                           border: Border.all(color: Colors.white, width: 2),
                           shape: BoxShape.circle,
-                          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.3), blurRadius: 4)],
+                          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.3), blurRadius: 4)],
                         ),
                         clipBehavior: Clip.antiAlias,
                         child: FlutterMap(

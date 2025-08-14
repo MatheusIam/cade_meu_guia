@@ -13,7 +13,7 @@ import '../widgets/widgets.dart';
 import 'tour_point_screen.dart';
 import '../providers/favorites_provider.dart';
 import 'settings_screen.dart';
-import 'add_tour_point_screen.dart';
+import 'manage_tour_point_screen.dart';
 import 'add_area_screen.dart';
 import '../providers/ratings_provider.dart';
 
@@ -1149,9 +1149,9 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       }
     } else if (choice == 'point') {
-  final result = await Navigator.of(context).push(
+    final result = await Navigator.of(context).push(
         MaterialPageRoute(
-          builder: (_) => AddTourPointScreen(
+      builder: (_) => ManageTourPointScreen(
             initialCenter: _mapController.camera.center,
             initialZoom: _mapController.camera.zoom,
           ),
