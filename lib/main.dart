@@ -8,6 +8,7 @@ import 'themes/app_themes.dart';
 import 'screens/home_screen.dart';
 import 'repositories/tour_point_repository.dart';
 import 'repositories/local_tour_point_repository.dart';
+import 'providers/tour_points_provider.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,6 +24,11 @@ Future<void> main() async {
           ChangeNotifierProvider(create: (context) => FavoritesProvider()),
           ChangeNotifierProvider(create: (context) => RatingsProvider()),
           Provider<ITourPointRepository>(create: (_) => LocalTourPointRepository()),
+          ChangeNotifierProvider(
+            create: (context) => TourPointsProvider(
+              context.read<ITourPointRepository>(),
+            ),
+          ),
         ],
         child: const MainApp(),
       ),
@@ -45,6 +51,7 @@ class _MainAppState extends State<MainApp> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<FavoritesProvider>().loadFavorites();
       context.read<RatingsProvider>().loadRatings();
+  context.read<TourPointsProvider>().load();
     });
   }
 

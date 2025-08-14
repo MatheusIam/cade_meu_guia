@@ -10,7 +10,7 @@ import '../providers/ratings_provider.dart';
 import 'manage_tour_point_screen.dart';
 import '../widgets/widgets.dart';
 import '../widgets/rating_form_dialog.dart';
-import '../data/tour_points_data.dart';
+import '../providers/tour_points_provider.dart';
 
 /// Tela de detalhes do ponto turístico
 class TourPointScreen extends StatefulWidget {
@@ -36,7 +36,8 @@ class _TourPointScreenState extends State<TourPointScreen>
     _tabController = TabController(length: 4, vsync: this);
     _pageController = PageController();
     if (widget.tourPoint.isArea) {
-      _childPoints = TourPointsData.getChildPoints(widget.tourPoint.id);
+  final tp = context.read<TourPointsProvider>();
+  _childPoints = tp.childrenOf(widget.tourPoint.id);
     }
   }
 
@@ -167,7 +168,8 @@ class _TourPointScreenState extends State<TourPointScreen>
   }
 
   List<TourPoint> _getNearbyPoints() {
-    return TourPointsData.getNearbyTourPoints(widget.tourPoint.location, 5.0)
+  final tp = context.read<TourPointsProvider>();
+  return tp.nearby(widget.tourPoint.location, 5.0)
         .where((point) => point.id != widget.tourPoint.id)
         .take(3)
         .toList();
@@ -287,7 +289,7 @@ class _TourPointScreenState extends State<TourPointScreen>
                       }
                     },
                   ),
-                if (TourPointsData.isCustomPoint(widget.tourPoint.id))
+                if (context.read<TourPointsProvider>().isCustom(widget.tourPoint.id))
                   IconButton(
                     icon: const Icon(Icons.edit_location_alt),
                     tooltip: 'edit_point'.tr(),
@@ -912,7 +914,8 @@ class _TourPointScreenState extends State<TourPointScreen>
   }
 
   Widget _buildChildPointsSection() {
-    final children = TourPointsData.getChildPoints(widget.tourPoint.id);
+  final tp = context.watch<TourPointsProvider>();
+  final children = tp.childrenOf(widget.tourPoint.id);
     if (children.isEmpty) return const SizedBox.shrink();
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,

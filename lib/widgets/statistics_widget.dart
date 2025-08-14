@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
-import '../data/tour_points_data.dart';
+import 'package:provider/provider.dart';
+import '../providers/tour_points_provider.dart';
 
 class StatisticsWidget extends StatelessWidget {
   const StatisticsWidget({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final stats = TourPointsData.getStatistics();
+  final stats = context.watch<TourPointsProvider>().getStatistics();
     
     return Card(
       margin: const EdgeInsets.all(16),
@@ -59,7 +60,7 @@ class StatisticsWidget extends StatelessWidget {
                     context,
                     Icons.thumb_up,
                     'best_rated'.tr(),
-                    stats['highestRated'].name,
+                    (stats['highestRated']?.name ?? '--'),
                   ),
                 ),
               ],

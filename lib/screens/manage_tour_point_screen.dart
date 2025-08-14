@@ -7,6 +7,7 @@ import 'package:geolocator/geolocator.dart';
 import '../utils/permission_helper.dart';
 import '../models/tour_point.dart';
 import '../data/tour_points_data.dart';
+import '../providers/tour_points_provider.dart';
 import 'package:provider/provider.dart';
 import '../repositories/tour_point_repository.dart';
 
@@ -151,6 +152,7 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
     final lat = double.tryParse(_latCtrl.text) ?? 0.0;
     final lng = double.tryParse(_lngCtrl.text) ?? 0.0;
     final photos = int.tryParse(_photosCtrl.text) ?? 0;
+    final activityPt = _mapKeyToPt(_activityType);
     final point = TourPoint(
       id: id,
       name: _nameCtrl.text.trim(),
@@ -159,14 +161,15 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
       location: LatLng(lat, lng),
       rating: _rating,
       photoCount: photos,
-      activityType: _activityType,
+      activityType: activityPt,
       images: widget.existing?.images ?? const [],
     );
     try {
+      final tp = context.read<TourPointsProvider>();
       if (isEdit) {
-        await TourPointsData.updateTourPoint(point);
+        await tp.updatePoint(point);
       } else {
-        await TourPointsData.addTourPoint(point);
+        await tp.addPoint(point);
       }
       if (mounted) Navigator.pop(context, point);
     } finally {
@@ -188,9 +191,25 @@ class _ManageTourPointScreenState extends State<ManageTourPointScreen> {
       ),
     );
     if (confirm != true) return;
-    setState(() => _saving = true);
-    await TourPointsData.deleteTourPoint(widget.existing!.id);
+  setState(() => _saving = true);
+  final tp = context.read<TourPointsProvider>();
+  await tp.deletePoint(widget.existing!.id);
     if (mounted) Navigator.pop(context, true);
+  }
+
+  String _mapKeyToPt(String key) {
+    switch (key) {
+      case 'hiking':
+        return 'Caminhada';
+      case 'contemplation':
+        return 'Contemplação';
+      case 'adventure':
+        return 'Aventura';
+      case 'cultural':
+        return 'Cultural';
+      default:
+        return key;
+    }
   }
 
   @override

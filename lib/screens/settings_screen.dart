@@ -5,7 +5,7 @@ import '../providers/theme_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/ratings_provider.dart';
 import '../constants/app_constants.dart';
-import '../data/tour_points_data.dart';
+import '../providers/tour_points_provider.dart';
 
 /// Tela de configurações e informações do app
 class SettingsScreen extends StatefulWidget {
@@ -175,7 +175,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   }
 
   Widget _buildStatisticsSection(BuildContext context) {
-    final stats = TourPointsData.getStatistics();
+  final stats = context.watch<TourPointsProvider>().getStatistics();
   final ratingsProvider = Provider.of<RatingsProvider>(context, listen: true);
     return Card(
       child: Column(

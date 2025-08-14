@@ -8,6 +8,7 @@ import '../models/tour_point.dart';
 import '../repositories/tour_point_repository.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/permission_helper.dart';
+import '../providers/tour_points_provider.dart';
 
 class EditAreaScreen extends StatefulWidget {
   final TourPoint area;
@@ -139,12 +140,14 @@ class _EditAreaScreenState extends State<EditAreaScreen> {
     setState(()=>_saving=true);
     try{
       final repo=context.read<ITourPointRepository>();
+  final tp=context.read<TourPointsProvider>();
       final updated=widget.area.copyWith(
         polygon: List<LatLng>.from(_vertices),
         // location recalculado pelo centro
         location: _centroid(),
       );
       await repo.update(updated);
+  await tp.updatePoint(updated);
       if(!mounted) return;
       Navigator.pop(context, updated);
     } catch(e){

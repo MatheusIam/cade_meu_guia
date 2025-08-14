@@ -254,7 +254,8 @@ class TourPointsData {
     return List.unmodifiable([..._tourPoints, ..._customTourPoints]);
   }
 
-  // Mantém compatibilidade síncrona (sem garantir incluir custom imediatamente)
+  // DEPRECATED: use getAllTourPointsAsync/TourPointsProvider em vez deste método síncrono.
+  // Mantido apenas por compatibilidade temporária; pode não refletir dados mais recentes.
   static List<TourPoint> getAllTourPoints() {
     return List.unmodifiable([..._tourPoints, ..._customTourPoints]);
   }

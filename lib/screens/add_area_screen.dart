@@ -8,6 +8,7 @@ import 'package:uuid/uuid.dart';
 import 'package:provider/provider.dart';
 import '../models/tour_point.dart';
 import '../repositories/tour_point_repository.dart';
+import '../providers/tour_points_provider.dart';
 
 class AddAreaScreen extends StatefulWidget {
   final LatLng? initialCenter;
@@ -121,6 +122,7 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
     setState(() => _saving = true);
     try {
       final repo = context.read<ITourPointRepository>();
+      final tp = context.read<TourPointsProvider>();
       final id = const Uuid().v4();
       final center = _computeCentroid();
       final area = TourPoint(
@@ -135,7 +137,8 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
         polygon: List<LatLng>.from(_vertices),
         images: const [],
       );
-      await repo.add(area);
+  await repo.add(area);
+  await tp.load(); // garante consistência na memória
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('area_created'.tr())),
@@ -409,12 +412,10 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
 
   bool _hasSelfIntersection() {
     if (_vertices.length < 4) return false; // triângulo não se cruza
-    // Checa cada par de segmentos não adjacentes
     for (int i = 0; i < _vertices.length; i++) {
       final a1 = _vertices[i];
       final a2 = _vertices[(i + 1) % _vertices.length];
       for (int j = i + 1; j < _vertices.length; j++) {
-        // ignora segmentos adjacentes e o mesmo
         if ((j == i) || (j == (i + 1) % _vertices.length) || ((i == 0) && (j == _vertices.length - 1))) continue;
         final b1 = _vertices[j];
         final b2 = _vertices[(j + 1) % _vertices.length];
@@ -424,19 +425,31 @@ class _AddAreaScreenState extends State<AddAreaScreen> {
     return false;
   }
 
-  bool _segmentsIntersect(LatLng p1, LatLng p2, LatLng p3, LatLng p4) {
-    double o1 = _orientation(p1, p2, p3);
-    double o2 = _orientation(p1, p2, p4);
-    double o3 = _orientation(p3, p4, p1);
-    double o4 = _orientation(p3, p4, p2);
-    if (o1 != o2 && o3 != o4) return true; // interseção geral
-    return false; // (casos colineares ignorados para simplicidade)
-  }
-
   double _orientation(LatLng a, LatLng b, LatLng c) {
     final val = (b.longitude - a.longitude) * (c.latitude - b.latitude) -
         (b.latitude - a.latitude) * (c.longitude - b.longitude);
-    if (val == 0) return 0;
+    if (val.abs() < 1e-12) return 0; // colinear com tolerância
     return (val > 0) ? 1 : 2;
+  }
+
+  bool _onSegment(LatLng a, LatLng b, LatLng p) {
+    return p.latitude <= (a.latitude > b.latitude ? a.latitude : b.latitude) + 1e-12 &&
+           p.latitude + 1e-12 >= (a.latitude < b.latitude ? a.latitude : b.latitude) &&
+           p.longitude <= (a.longitude > b.longitude ? a.longitude : b.longitude) + 1e-12 &&
+           p.longitude + 1e-12 >= (a.longitude < b.longitude ? a.longitude : b.longitude);
+  }
+
+  bool _segmentsIntersect(LatLng p1, LatLng p2, LatLng p3, LatLng p4) {
+    final o1 = _orientation(p1, p2, p3);
+    final o2 = _orientation(p1, p2, p4);
+    final o3 = _orientation(p3, p4, p1);
+    final o4 = _orientation(p3, p4, p2);
+    if (o1 != o2 && o3 != o4) return true; // interseção geral
+    // Casos colineares
+    if (o1 == 0 && _onSegment(p1, p2, p3)) return true;
+    if (o2 == 0 && _onSegment(p1, p2, p4)) return true;
+    if (o3 == 0 && _onSegment(p3, p4, p1)) return true;
+    if (o4 == 0 && _onSegment(p3, p4, p2)) return true;
+    return false;
   }
 }

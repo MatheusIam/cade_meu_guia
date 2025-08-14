@@ -8,7 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import '../utils/permission_helper.dart';
 import '../models/tour_point.dart';
-import '../data/tour_points_data.dart';
+import '../providers/tour_points_provider.dart';
 
 class AddTourPointScreen extends StatefulWidget {
   final LatLng? initialCenter;
@@ -114,10 +114,12 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
     if (!_formKey.currentState!.validate()) return;
     setState(() => _saving = true);
     try {
+      final tp = context.read<TourPointsProvider>();
       final id = const Uuid().v4();
       final lat = double.tryParse(_latCtrl.text) ?? 0.0;
       final lng = double.tryParse(_lngCtrl.text) ?? 0.0;
       final photos = int.tryParse(_photosCtrl.text) ?? 0;
+      final mappedActivity = _mapActivityKeyToPortuguese(_activityType);
       final point = TourPoint(
         id: id,
         name: _nameCtrl.text.trim(),
@@ -126,11 +128,11 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
         location: LatLng(lat, lng),
         rating: _rating,
         photoCount: photos,
-        activityType: _activityType,
+        activityType: mappedActivity,
         images: const [],
   parentId: _selectedParentAreaId,
       );
-      await TourPointsData.addTourPoint(point);
+      await tp.addPoint(point);
       if (mounted) {
         Navigator.pop(context, point);
         ScaffoldMessenger.of(context).showSnackBar(
@@ -145,6 +147,21 @@ class _AddTourPointScreenState extends State<AddTourPointScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  String _mapActivityKeyToPortuguese(String key) {
+    switch (key) {
+      case 'hiking':
+        return 'Caminhada';
+      case 'contemplation':
+        return 'Contemplação';
+      case 'adventure':
+        return 'Aventura';
+      case 'cultural':
+        return 'Cultural';
+      default:
+        return key;
     }
   }
 

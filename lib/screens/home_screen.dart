@@ -8,7 +8,7 @@ import '../utils/permission_helper.dart';
 import 'package:provider/provider.dart';
 import '../providers/theme_provider.dart';
 import '../models/tour_point.dart';
-import '../data/tour_points_data.dart';
+import '../providers/tour_points_provider.dart';
 import '../widgets/widgets.dart';
 import 'tour_point_screen.dart';
 import '../providers/favorites_provider.dart';
@@ -40,6 +40,17 @@ class _HomeScreenState extends State<HomeScreen> {
     super.initState();
   _loadTourPoints();
   WidgetsBinding.instance.addPostFrameCallback((_) => _centerOnUserLocationOnce());
+  // Reage a atualizações do provider de pontos
+  WidgetsBinding.instance.addPostFrameCallback((_) {
+    final tp = context.read<TourPointsProvider>();
+    tp.addListener(() {
+      if (!mounted) return;
+      setState(() {
+        _tourPoints = tp.main;
+        _applyFilters();
+      });
+    });
+  });
   }
   Future<void> _centerOnUserLocationOnce() async {
     if (_requestedInitialLocation) return;
@@ -59,9 +70,20 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _loadTourPoints() {
-  // Carrega somente pontos principais (sem parentId) para não poluir o mapa com sub-pontos
-  _tourPoints = TourPointsData.getMainTourPoints();
-    _filteredTourPoints = _tourPoints;
+    final provider = context.read<TourPointsProvider>();
+    // Se já carregado, usa imediatamente; caso contrário, aguarda carregar assincronamente
+    if (provider.isLoaded) {
+      _tourPoints = provider.main;
+      _filteredTourPoints = _tourPoints;
+    } else {
+      provider.load().then((_) {
+        if (!mounted) return;
+        setState(() {
+          _tourPoints = provider.main;
+          _filteredTourPoints = _tourPoints;
+        });
+      });
+    }
   }
 
   void _filterByCategory(String category) {
@@ -252,8 +274,12 @@ class _HomeScreenState extends State<HomeScreen> {
     // Usa Consumer para reagir a mudanças nos favoritos
     return Consumer<FavoritesProvider>(
       builder: (context, favoritesProvider, child) {
-        final isLoaded = favoritesProvider.isLoaded;
-        final favoritePoints = favoritesProvider.getFavoriteTourPoints();
+    final isLoaded = favoritesProvider.isLoaded;
+    final tp = context.watch<TourPointsProvider>();
+    final allPoints = tp.all;
+    final favoritePoints = allPoints
+      .where((p) => favoritesProvider.favoriteIds.contains(p.id))
+      .toList();
 
         return Column(
           children: [
@@ -360,19 +386,36 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                         child: const Icon(Icons.delete, color: Colors.white),
                       ),
-                      onDismissed: (_) async {
-                        await favoritesProvider.removeFavorite(point.id);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('${point.name} ${'removed_from_favorites'.tr()}'),
-                            action: SnackBarAction(
-                              label: 'undo'.tr(),
-                              onPressed: () async {
-                                await favoritesProvider.addFavorite(point.id);
-                              },
-                            ),
+                      confirmDismiss: (_) async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: Text('remove_favorite_title'.tr()),
+                            content: Text('remove_favorite_confirm'.tr()),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('cancel'.tr())),
+                              FilledButton(onPressed: () => Navigator.pop(ctx, true), child: Text('remove'.tr())),
+                            ],
                           ),
                         );
+                        if (confirm == true) {
+                          await favoritesProvider.removeFavorite(point.id);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text('${point.name} ${'removed_from_favorites'.tr()}'),
+                                action: SnackBarAction(
+                                  label: 'undo'.tr(),
+                                  onPressed: () async {
+                                    await favoritesProvider.addFavorite(point.id);
+                                  },
+                                ),
+                              ),
+                            );
+                          }
+                          return true;
+                        }
+                        return false;
                       },
                       child: Card(
                         margin: const EdgeInsets.symmetric(
@@ -906,8 +949,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                           if (updated is TourPoint) {
+                            final tp = context.read<TourPointsProvider>();
                             setState(() {
-                              _tourPoints = TourPointsData.getMainTourPoints();
+                              _tourPoints = tp.main;
                               _applyFilters();
                             });
                           }
@@ -1095,8 +1139,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
       if (result != null) {
+        final tp = context.read<TourPointsProvider>();
         setState(() {
-          _tourPoints = TourPointsData.getMainTourPoints();
+          _tourPoints = tp.main;
           _applyFilters();
         });
       }
@@ -1110,8 +1155,9 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       );
       if (result != null) {
+        final tp = context.read<TourPointsProvider>();
         setState(() {
-          _tourPoints = TourPointsData.getAllTourPoints();
+          _tourPoints = tp.main;
           _applyFilters();
         });
       }
